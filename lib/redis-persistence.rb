@@ -1,3 +1,7 @@
+require 'redis'
+require 'multi_json'
+require 'active_model'
+
 require 'redis-persistence/version'
 
 class Redis
@@ -6,6 +10,16 @@ class Redis
     def self.included(base)
 
       base.class_eval do
+        include ActiveModel::AttributeMethods
+        include ActiveModel::Validations
+        include ActiveModel::Serialization
+        include ActiveModel::Serializers::JSON
+        include ActiveModel::Naming
+        include ActiveModel::Conversion
+
+        extend  ActiveModel::Callbacks
+        define_model_callbacks :save, :destroy
+
         extend  ClassMethods
         include InstanceMethods
       end
@@ -32,6 +46,8 @@ class Redis
 
     module InstanceMethods
 
+      attr_accessor :id
+
       def properties
         self.class.properties.inject({}) do |attributes, key|
            attributes[key[0]] = send(key[0]) || key[1];
@@ -55,6 +71,10 @@ class Redis
       def destroy
         $redis.del "#{self.class.to_s.pluralize.downcase}:#{self.id}"
         self.freeze
+      end
+
+      def persisted?
+        $redis.exists "#{self.class.to_s.pluralize.downcase}:#{self.id}"
       end
 
       def inspect
