@@ -59,7 +59,9 @@ class Redis
       end
 
       def find(id)
-        self.new.from_json(__redis.get("#{self.to_s.pluralize.downcase}:#{id}"))
+        if json = __redis.get("#{self.to_s.pluralize.downcase}:#{id}")
+          self.new.from_json(json)
+        end
       end
 
     end
