@@ -86,6 +86,21 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 0, Redis::Persistence.config.redis.keys.size
     end
 
+    should "fire before_save hooks" do
+      article = ModelWithCallbacks.new title: 'Hooks'
+      article.expects(:my_callback_method).twice
+
+      article.save
+    end
+
+    should "fire before_destroy hooks" do
+      article = ModelWithCallbacks.new title: 'Hooks'
+      article.save
+      article.destroy
+
+      assert_equal 'YEAH', article.instance_variable_get(:@hooked)
+    end
+
   end
 
 end

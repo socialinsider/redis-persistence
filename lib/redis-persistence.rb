@@ -82,12 +82,16 @@ class Redis
       end
 
       def save
-        __redis.set "#{self.class.to_s.pluralize.downcase}:#{self.id}", self.to_json
+        run_callbacks :save do
+          __redis.set "#{self.class.to_s.pluralize.downcase}:#{self.id}", self.to_json
+        end
         self
       end
 
       def destroy
-        __redis.del "#{self.class.to_s.pluralize.downcase}:#{self.id}"
+        run_callbacks :destroy do
+          __redis.del "#{self.class.to_s.pluralize.downcase}:#{self.id}"
+        end
         self.freeze
       end
 
