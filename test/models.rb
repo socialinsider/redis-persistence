@@ -24,3 +24,11 @@ class ModelWithCallbacks
   def my_callback_method
   end
 end
+
+class ModelWithValidations
+  include Redis::Persistence
+
+  property :title
+
+  validates_presence_of :title
+end
