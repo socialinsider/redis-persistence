@@ -46,12 +46,16 @@ class Redis
         attr_accessor name.to_sym
         properties << name.to_s unless properties.include?(name.to_s)
         define_attribute_methods [name.to_sym]
-        send name.to_s, options[:default] if options[:default]
+        property_defaults[name.to_sym] = options[:default] if options[:default]
         self
       end
 
       def properties
         @properties ||= []
+      end
+
+      def property_defaults
+        @property_defaults ||= {}
       end
 
       def find(id)
@@ -65,7 +69,7 @@ class Redis
       attr_accessor :id
 
       def initialize(attributes={})
-        attributes.each { |name, value| send("#{name}=", value) }
+        self.class.property_defaults.merge(attributes).each { |name, value| send( "#{name}=", value) }
         self
       end
       alias :attributes= :initialize

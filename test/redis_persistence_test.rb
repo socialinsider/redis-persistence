@@ -13,7 +13,34 @@ class RedisPersistenceTest < ActiveSupport::TestCase
   end
   
   context "Defining properties" do
-  
+
+    should "define accessors from attributes" do
+      article = PersistentArticle.new title: 'One'
+      assert_equal 'One', article.title
+    end
+
+    should "set the attributes" do
+      article = PersistentArticle.new title: 'One'
+      article.title = 'Two'
+      assert_equal 'Two', article.title
+    end
+
+    should "raise error when passing invalid attribute" do
+      assert_raise NoMethodError do
+        PersistentArticle.new krapulitzowka: 'Not'
+      end
+    end
+
+    should "return nil for not passed attributes" do
+      assert_nil PersistentArticle.new.title
+    end
+
+    should "return default values" do
+      d = ModelWithDefaults.new
+      assert_equal '(Unknown)', d.title
+      assert_equal true, d.admin
+    end
+
   end
 
   context "Instance" do
