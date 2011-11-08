@@ -1,15 +1,22 @@
 require 'redis'
 require 'multi_json'
 require 'active_model'
+require 'active_support/concern'
 
 require 'redis-persistence/version'
 
 class Redis
   module Persistence
+    extend ActiveSupport::Concern
 
-    def self.included(base)
+    included do
+      include ActiveModelIntegration
+    end
 
-      base.class_eval do
+    module ActiveModelIntegration
+      extend ActiveSupport::Concern
+
+      included do
         include ActiveModel::AttributeMethods
         include ActiveModel::Validations
         include ActiveModel::Serialization
@@ -19,11 +26,7 @@ class Redis
 
         extend  ActiveModel::Callbacks
         define_model_callbacks :save, :destroy
-
-        extend  ClassMethods
-        include InstanceMethods
       end
-
     end
 
     module ClassMethods
