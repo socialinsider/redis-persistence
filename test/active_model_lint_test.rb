@@ -1,9 +1,5 @@
 require '_helper'
 
-class PersistentArticle
-  include Redis::Persistence
-end
-
 class Redis
   module Persistence
 

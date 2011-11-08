@@ -13,6 +13,7 @@ class Redis
 
     included do
       include ActiveModelIntegration
+      self.include_root_in_json = false
 
       def self.__redis
         Redis::Persistence.config.redis
@@ -43,16 +44,18 @@ class Redis
 
       def property(name, options = {})
         attr_accessor name.to_sym
-
-        properties[name] = options[:default]
+        properties << name.to_s unless properties.include?(name.to_s)
+        define_attribute_methods [name.to_sym]
+        send name.to_s, options[:default] if options[:default]
+        self
       end
 
       def properties
-        @properties ||= {}
+        @properties ||= []
       end
 
       def find(id)
-        self.new Yajl::Parser.parse(__redis.get("#{self.to_s.pluralize.downcase}:#{id}")) rescue nil
+        self.new.from_json(__redis.get("#{self.to_s.pluralize.downcase}:#{id}"))
       end
 
     end
@@ -61,19 +64,15 @@ class Redis
 
       attr_accessor :id
 
-      def properties
-        self.class.properties.inject({}) do |attributes, key|
-           attributes[key[0]] = send(key[0]) || key[1];
-           attributes
-        end
-      end
-
-      def to_json
-        properties.to_json
-      end
-
       def initialize(attributes={})
-        properties.merge(attributes).each_pair { |name,value| instance_variable_set :"@#{name}", value }
+        attributes.each { |name, value| send("#{name}=", value) }
+        self
+      end
+      alias :attributes= :initialize
+
+      def attributes
+        self.class.properties.
+          inject( self.id ? {'id' => self.id} : {} ) {|attributes, key| attributes[key] = send(key); attributes}
       end
 
       def save
@@ -91,7 +90,7 @@ class Redis
       end
 
       def inspect
-        "#<#{self.class} : #{properties.inspect {|array, property| array << property.inspect; array }}>"
+        "#<#{self.class} : #{attributes.inspect {|array, property| array << property.inspect; array }}>"
       end
 
     end
