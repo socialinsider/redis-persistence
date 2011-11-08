@@ -96,7 +96,7 @@ class Redis
       end
 
       def inspect
-        "#<#{self.class} : #{attributes.inspect {|array, property| array << property.inspect; array }}>"
+        "#<#{self.class}: #{attributes}>"
       end
 
     end
