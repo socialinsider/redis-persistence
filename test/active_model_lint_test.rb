@@ -13,6 +13,7 @@ class Redis
 
       def setup
         @model = PersistentArticle.new :title => 'Test'
+        Redis::Persistence.config.redis = Redis.new
       end
 
     end
