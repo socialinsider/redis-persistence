@@ -14,4 +14,17 @@ Gem::Specification.new do |gem|
   gem.name          = "redis-persistence"
   gem.require_paths = ["lib"]
   gem.version       = Redis::Persistence::VERSION
+
+  # = Library dependencies
+  #
+  gem.add_dependency "activemodel", "~> 3.0"
+  gem.add_dependency "multi_json",  "~> 1.0"
+
+  # = Development dependencies
+  #
+  gem.add_development_dependency "bundler",     "~> 1.0.0"
+  gem.add_development_dependency "yajl-ruby",   "~> 0.8.0"
+  gem.add_development_dependency "shoulda"
+  gem.add_development_dependency "mocha"
+  gem.add_development_dependency "turn"
 end
