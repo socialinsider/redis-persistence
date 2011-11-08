@@ -1,6 +1,6 @@
-require "redis-persistence/version"
+require 'redis-persistence/version'
 
-module Redis
+class Redis
   module Persistence
 
     def self.included(base)
