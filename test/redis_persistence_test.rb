@@ -1,6 +1,6 @@
 require '_helper'
 
-module Redis
+class Redis
   module Persistence
 
     class RedisPersistenceTest < Test::Unit::TestCase
