@@ -1,29 +1,19 @@
 require '_helper'
 
-class PersistentArticle
-  include Redis::Persistence
-
-  property :id
-  property :title
-end
-
 class RedisPersistenceTest < ActiveSupport::TestCase
   def setup;    super; end
   def teardown; super; end
 
   context "Redis Connection" do
-
+  
     should "be set" do
       assert_nothing_raised { Redis::Persistence.config.redis.info }
     end
-
+  
   end
-
+  
   context "Defining properties" do
-
-    should "" do
-    end
-
+  
   end
 
   context "Instance" do
@@ -39,9 +29,6 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 'One', PersistentArticle.find(1).title
     end
 
-  end
-
-  context "Finding records" do
   end
 
 end

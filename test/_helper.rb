@@ -4,6 +4,14 @@ require 'turn' unless ENV["TM_FILEPATH"] || ENV["CI"]
 require 'mocha'
 
 require 'redis-persistence'
+require 'yajl'
+
+class PersistentArticle
+  include Redis::Persistence
+
+  property :id
+  property :title
+end
 
 class Test::Unit::TestCase
 
