@@ -53,7 +53,19 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       article = PersistentArticle.new id: 1, title: 'One'
       assert article.save
       assert PersistentArticle.find(1)
+      assert_equal 1, Redis::Persistence.config.redis.keys.size
       assert_equal 'One', PersistentArticle.find(1).title
+    end
+
+    should "be deleted from Redis" do
+      article = PersistentArticle.new id: 1, title: 'One'
+      assert article.save
+      assert_not_nil PersistentArticle.find(1)
+      assert_equal 1, Redis::Persistence.config.redis.keys.size
+
+      article.destroy
+      assert_nil PersistentArticle.find(1)
+      assert_equal 0, Redis::Persistence.config.redis.keys.size
     end
 
   end
