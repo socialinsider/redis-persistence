@@ -52,7 +52,7 @@ class Redis
       end
 
       def find(id)
-        self.new Yajl::Parser.parse($redis.get("#{self.to_s.pluralize.downcase}:#{id}")) rescue nil
+        self.new Yajl::Parser.parse(__redis.get("#{self.to_s.pluralize.downcase}:#{id}")) rescue nil
       end
 
     end
@@ -77,12 +77,12 @@ class Redis
       end
 
       def save
-        $redis.set "#{self.class.to_s.pluralize.downcase}:#{self.id}", self.to_json
+        __redis.set "#{self.class.to_s.pluralize.downcase}:#{self.id}", self.to_json
         self
       end
 
       def destroy
-        $redis.del "#{self.class.to_s.pluralize.downcase}:#{self.id}"
+        __redis.del "#{self.class.to_s.pluralize.downcase}:#{self.id}"
         self.freeze
       end
 

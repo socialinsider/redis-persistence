@@ -5,10 +5,8 @@ class PersistentArticle
 end
 
 class RedisPersistenceTest < ActiveSupport::TestCase
-
-  setup do
-    Redis::Persistence.config.redis = Redis.new
-  end
+  def setup;    super; end
+  def teardown; super; end
 
   context "Redis Connection" do
 

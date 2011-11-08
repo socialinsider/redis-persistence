@@ -12,8 +12,8 @@ class Redis
       include ActiveModel::Lint::Tests
 
       def setup
-        @model = PersistentArticle.new :title => 'Test'
-        Redis::Persistence.config.redis = Redis.new
+        super
+        @model = PersistentArticle.new title: 'Test'
       end
 
     end
