@@ -32,3 +32,16 @@ class ModelWithValidations
 
   validates_presence_of :title
 end
+
+class ModelWithCasting
+
+  class Thing
+  end
+
+  include Redis::Persistence
+
+  property :thing,  :class => Thing
+  property :things, :class => [Thing]
+
+  property :created, :class => Time
+end

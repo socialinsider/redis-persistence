@@ -41,6 +41,10 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal true, d.admin
     end
 
+    should_eventually "cast the value" do
+      
+    end
+
   end
 
   context "Class" do
