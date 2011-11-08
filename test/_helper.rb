@@ -6,12 +6,7 @@ require 'mocha'
 require 'redis-persistence'
 require 'yajl'
 
-class PersistentArticle
-  include Redis::Persistence
-
-  property :id
-  property :title
-end
+require 'models'
 
 class Test::Unit::TestCase
 
