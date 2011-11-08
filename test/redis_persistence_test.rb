@@ -43,12 +43,24 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
   end
 
+  context "Class" do
+
+    should "have properties" do
+      assert_equal ['id', 'title'], PersistentArticle.properties
+    end
+
+  end
+
   context "Instance" do
 
     should "be inspectable" do
       assert_nothing_raised do
         assert_match /PersistentArticle/, PersistentArticle.new(id: 1, title: { some: { deep: 'Hash', :a => [1, 2, 3] } }).inspect
       end
+    end
+
+    should "have attributes" do
+      assert_equal ['id', 'title'], PersistentArticle.new.attributes.keys
     end
 
     should "not persist by default" do
