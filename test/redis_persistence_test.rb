@@ -101,6 +101,13 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 'YEAH', article.instance_variable_get(:@hooked)
     end
 
+    should "perform validations" do
+      m = ModelWithValidations.new
+
+      assert ! m.valid?
+      assert_equal 1, m.errors.to_a.size
+    end
+
   end
 
 end
