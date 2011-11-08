@@ -45,6 +45,12 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
   context "Instance" do
 
+    should "be inspectable" do
+      assert_nothing_raised do
+        assert_match /PersistentArticle/, PersistentArticle.new(id: 1, title: { some: { deep: 'Hash', :a => [1, 2, 3] } }).inspect
+      end
+    end
+
     should "not persist by default" do
       assert ! PersistentArticle.new.persisted?
     end
