@@ -2,15 +2,25 @@ require 'redis'
 require 'multi_json'
 require 'active_model'
 require 'active_support/concern'
+require 'active_support/configurable'
 
 require 'redis-persistence/version'
 
 class Redis
   module Persistence
-    extend ActiveSupport::Concern
+    include ActiveSupport::Configurable
+    extend  ActiveSupport::Concern
 
     included do
       include ActiveModelIntegration
+
+      def self.__redis
+        Redis::Persistence.config.redis
+      end
+
+      def __redis
+        self.class.__redis
+      end
     end
 
     module ActiveModelIntegration
@@ -77,7 +87,7 @@ class Redis
       end
 
       def persisted?
-        $redis.exists "#{self.class.to_s.pluralize.downcase}:#{self.id}"
+        __redis.exists "#{self.class.to_s.pluralize.downcase}:#{self.id}"
       end
 
       def inspect

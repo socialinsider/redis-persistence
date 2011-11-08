@@ -1,19 +1,39 @@
 require '_helper'
 
-class Redis
-  module Persistence
+class PersistentArticle
+  include Redis::Persistence
+end
 
-    class RedisPersistenceTest < Test::Unit::TestCase
+class RedisPersistenceTest < ActiveSupport::TestCase
 
-      context "Basically..." do
+  setup do
+    Redis::Persistence.config.redis = Redis.new
+  end
 
-        should "work..." do
-          assert true
-        end
+  context "Redis Connection" do
 
-      end
-
+    should "be set" do
+      assert_nothing_raised { Redis::Persistence.config.redis.info }
     end
 
   end
+
+  context "Defining properties" do
+
+    should "" do
+    end
+
+  end
+
+  context "Instance" do
+
+    should "not persist by default" do
+      assert ! PersistentArticle.new.persisted?
+    end
+
+  end
+
+  context "Finding records" do
+  end
+
 end
