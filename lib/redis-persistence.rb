@@ -65,7 +65,7 @@ class Redis
       end
 
       def find(id)
-        if json = __redis.get("#{self.model_name.plural}:#{id}")
+        if json = __redis.hget("#{self.model_name.plural}:#{id}", 'data')
           self.new.from_json(json)
         end
       end
@@ -103,7 +103,7 @@ class Redis
       def save
         run_callbacks :save do
           self.id ||= self.class.__next_id
-          __redis.set "#{self.class.model_name.plural}:#{self.id}", self.to_json
+          __redis.hset "#{self.class.model_name.plural}:#{self.id}", 'data', self.to_json
         end
         self
       end

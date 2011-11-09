@@ -4,6 +4,10 @@ class RedisPersistenceTest < ActiveSupport::TestCase
   def setup;    super; end
   def teardown; super; end
 
+  def in_redis
+    Redis::Persistence.config.redis
+  end
+
   context "Redis Connection" do
   
     should "be set" do
@@ -65,6 +69,18 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     should "provide easy access to deep hashes" do
       m = ModelWithDeepHashes.new tree: { trunk: { branch: 'leaf' } }
       assert_equal 'leaf', m.tree.trunk.branch
+    end
+
+  end
+
+  context "Defining properties in families" do
+
+    should "save properties in the 'data' family by default" do
+      m = ModelWithFamily.new name: 'One'
+      m.save
+
+      assert in_redis.exists('model_with_families:1'), "Key not saved into Redis? " + Redis::Persistence.config.redis.keys.to_s
+      assert in_redis.hkeys('model_with_families:1').include?('data')
     end
 
   end
