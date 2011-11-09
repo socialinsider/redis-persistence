@@ -1,4 +1,5 @@
 require 'redis'
+require 'hashr'
 require 'multi_json'
 require 'active_model'
 require 'active_support/concern'
@@ -80,8 +81,11 @@ class Redis
 
       def initialize(attributes={})
         self.class.property_defaults.merge(attributes).each do |name, value|
-          if klass = self.class.property_types[name.to_sym]
+          case
+          when klass = self.class.property_types[name.to_sym]
             send "#{name}=", klass.new(value)
+          when value.is_a?(Hash)
+            send "#{name}=", Hashr.new(value)
           else
             send "#{name}=", value
           end

@@ -62,6 +62,11 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 1, m.stuff.values.first
     end
 
+    should "provide easy access to deep hashes" do
+      m = ModelWithDeepHashes.new tree: { trunk: { branch: 'leaf' } }
+      assert_equal 'leaf', m.tree.trunk.branch
+    end
+
   end
 
   context "Class" do

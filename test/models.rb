@@ -63,3 +63,9 @@ class ModelWithCasting
   property :thing,   :class => Thing
   property :stuff,   :class => Stuff
 end
+
+class ModelWithDeepHashes
+  include Redis::Persistence
+
+  property :tree
+end

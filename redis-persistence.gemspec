@@ -19,10 +19,11 @@ Gem::Specification.new do |gem|
   #
   gem.add_dependency "activemodel", "~> 3.0"
   gem.add_dependency "multi_json",  "~> 1.0"
+  gem.add_dependency "hashr",       "~> 0.0.16"
 
   # = Development dependencies
   #
-  gem.add_development_dependency "bundler",     "~> 1.0.0"
+  gem.add_development_dependency "bundler",     "~> 1.0"
   gem.add_development_dependency "yajl-ruby",   "~> 0.8.0"
   gem.add_development_dependency "shoulda"
   gem.add_development_dependency "mocha"
