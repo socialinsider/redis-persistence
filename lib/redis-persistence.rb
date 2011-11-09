@@ -65,13 +65,13 @@ class Redis
       end
 
       def find(id)
-        if json = __redis.get("#{self.to_s.pluralize.downcase}:#{id}")
+        if json = __redis.get("#{self.model_name.plural}:#{id}")
           self.new.from_json(json)
         end
       end
 
       def __next_id
-        __redis.incr("#{self.class.to_s.pluralize.downcase}:__ids__")
+        __redis.incr("#{self.model_name.plural}:__ids__")
       end
 
     end
@@ -103,20 +103,20 @@ class Redis
       def save
         run_callbacks :save do
           self.id ||= self.class.__next_id
-          __redis.set "#{self.class.to_s.pluralize.downcase}:#{self.id}", self.to_json
+          __redis.set "#{self.class.model_name.plural}:#{self.id}", self.to_json
         end
         self
       end
 
       def destroy
         run_callbacks :destroy do
-          __redis.del "#{self.class.to_s.pluralize.downcase}:#{self.id}"
+          __redis.del "#{self.class.model_name.plural}:#{self.id}"
         end
         self.freeze
       end
 
       def persisted?
-        __redis.exists "#{self.class.to_s.pluralize.downcase}:#{self.id}"
+        __redis.exists "#{self.class.model_name.plural}:#{self.id}"
       end
 
       def inspect
