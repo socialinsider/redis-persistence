@@ -11,7 +11,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
   context "Redis Connection" do
   
     should "be set" do
-      assert_nothing_raised { Redis::Persistence.config.redis.info }
+      assert_nothing_raised { in_redis.info }
     end
   
   end
@@ -75,12 +75,34 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
   context "Defining properties in families" do
 
-    should "save properties in the 'data' family by default" do
+    should "store properties in the 'data' family by default" do
       m = ModelWithFamily.new name: 'One'
       m.save
 
-      assert in_redis.exists('model_with_families:1'), "Key not saved into Redis? " + Redis::Persistence.config.redis.keys.to_s
+      assert in_redis.exists('model_with_families:1'), in_redis.keys.to_s
       assert in_redis.hkeys('model_with_families:1').include?('data')
+    end
+
+    should "store properties in the correct family" do
+      m = ModelWithFamily.new name: 'F', views: 100, visits: 10, lang: 'en'
+      m.save
+
+      assert_equal 1, m.id
+      assert in_redis.exists('model_with_families:1'), in_redis.keys.to_s
+      assert in_redis.hkeys('model_with_families:1').include?('data'),     in_redis.hkeys('model_with_families:1').to_s
+      assert in_redis.hkeys('model_with_families:1').include?('counters'), in_redis.hkeys('model_with_families:1').to_s
+
+      m = ModelWithFamily.find(1)
+      assert_not_nil m.name
+      assert_nil     m.views
+
+      m = ModelWithFamily.find(1, :families => ['counters', 'meta'])
+      assert_not_nil m.name
+      assert_not_nil m.views
+
+      assert_equal 'F',  m.name
+      assert_equal 10,   m.visits
+      assert_equal 'en', m.lang
     end
 
   end
@@ -117,10 +139,10 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     should "be saved and found in Redis" do
       article = PersistentArticle.new id: 1, title: 'One'
       assert article.save
-      assert Redis::Persistence.config.redis.exists("persistent_articles:1")
+      assert in_redis.exists("persistent_articles:1")
 
       assert PersistentArticle.find(1)
-      assert Redis::Persistence.config.redis.keys.size > 0, 'Key not saved into Redis?'
+      assert in_redis.keys.size > 0, 'Key not saved into Redis?'
       assert_equal 'One', PersistentArticle.find(1).title
     end
 
@@ -128,11 +150,11 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       article = PersistentArticle.new id: 1, title: 'One'
       assert article.save
       assert_not_nil PersistentArticle.find(1)
-      assert Redis::Persistence.config.redis.keys.size > 0, 'Key not saved into Redis?'
+      assert in_redis.keys.size > 0, 'Key not saved into Redis?'
 
       article.destroy
       assert_nil PersistentArticle.find(1)
-      assert_equal 0, Redis::Persistence.config.redis.keys.size, 'Key not removed from Redis?'
+      assert_equal 0, in_redis.keys.size, 'Key not removed from Redis?'
     end
 
     should "get auto-incrementing ID on save when none is passed" do

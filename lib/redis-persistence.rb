@@ -47,8 +47,14 @@ class Redis
       def property(name, options = {})
         attr_accessor name.to_sym
         properties << name.to_s unless properties.include?(name.to_s)
+
         property_defaults[name.to_sym] = options[:default] if options[:default]
         property_types[name.to_sym]    = options[:class]   if options[:class]
+        unless options[:family]
+          (property_families[:data] ||= [])                   << name.to_s
+        else
+          (property_families[options[:family].to_sym] ||= []) << name.to_s
+        end
         self
       end
 
@@ -64,9 +70,17 @@ class Redis
         @property_types ||= {}
       end
 
-      def find(id)
-        if json = __redis.hget("#{self.model_name.plural}:#{id}", 'data')
-          self.new.from_json(json)
+      def property_families
+        @property_families ||= { :data => ['id'] }
+      end
+
+      def find(id, options={})
+        families = ['data'] | Array(options[:families])
+        data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
+
+        unless data.compact.empty?
+          attributes = data.inject({}) { |hash, item| hash.update( MultiJson.decode(item) ); hash }
+          self.new attributes
         end
       end
 
@@ -103,7 +117,10 @@ class Redis
       def save
         run_callbacks :save do
           self.id ||= self.class.__next_id
-          __redis.hset "#{self.class.model_name.plural}:#{self.id}", 'data', self.to_json
+          params    = self.class.property_families.keys.map do |family|
+                        [family.to_s, self.to_json(:only => self.class.property_families[family])]
+                      end.flatten
+          __redis.hmset "#{self.class.model_name.plural}:#{self.id}", *params
         end
         self
       end

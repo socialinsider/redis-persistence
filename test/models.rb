@@ -76,7 +76,7 @@ class ModelWithFamily
   property :name
 
   property :views,  :family => 'counters'
-  property :clicks, :family => 'counters'
+  property :visits, :family => 'counters'
 
   property :lang,   :family => 'meta'
 end
