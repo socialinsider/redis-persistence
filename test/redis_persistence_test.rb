@@ -101,6 +101,8 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     should "be saved and found in Redis" do
       article = PersistentArticle.new id: 1, title: 'One'
       assert article.save
+      assert Redis::Persistence.config.redis.exists("persistent_articles:1")
+
       assert PersistentArticle.find(1)
       assert Redis::Persistence.config.redis.keys.size > 0, 'Key not saved into Redis?'
       assert_equal 'One', PersistentArticle.find(1).title
