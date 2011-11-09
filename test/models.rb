@@ -69,3 +69,14 @@ class ModelWithDeepHashes
 
   property :tree
 end
+
+class ModelWithFamily
+  include Redis::Persistence
+
+  property :name
+
+  property :views,  :family => 'counters'
+  property :clicks, :family => 'counters'
+
+  property :lang,   :family => 'meta'
+end
