@@ -70,6 +70,11 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal ['id', 'title', 'created'], PersistentArticle.properties
     end
 
+    should "have auto-incrementing counter" do
+      assert_equal 1, PersistentArticle.__next_id
+      assert_equal 2, PersistentArticle.__next_id
+    end
+
   end
 
   context "Instance" do
@@ -92,7 +97,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       article = PersistentArticle.new id: 1, title: 'One'
       assert article.save
       assert PersistentArticle.find(1)
-      assert_equal 1, Redis::Persistence.config.redis.keys.size
+      assert Redis::Persistence.config.redis.keys.size > 0, 'Key not saved into Redis?'
       assert_equal 'One', PersistentArticle.find(1).title
     end
 
@@ -100,11 +105,23 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       article = PersistentArticle.new id: 1, title: 'One'
       assert article.save
       assert_not_nil PersistentArticle.find(1)
-      assert_equal 1, Redis::Persistence.config.redis.keys.size
+      assert Redis::Persistence.config.redis.keys.size > 0, 'Key not saved into Redis?'
 
       article.destroy
       assert_nil PersistentArticle.find(1)
-      assert_equal 0, Redis::Persistence.config.redis.keys.size
+      assert_equal 0, Redis::Persistence.config.redis.keys.size, 'Key not removed from Redis?'
+    end
+
+    should "get auto-incrementing ID on save when none is passed" do
+      article = PersistentArticle.new title: 'One'
+
+      assert_nil article.id
+
+      assert article.save
+      assert_not_nil article.id
+
+      assert_equal 1, PersistentArticle.find(1).id
+      assert_equal 2, PersistentArticle.__next_id
     end
 
     should "fire before_save hooks" do
