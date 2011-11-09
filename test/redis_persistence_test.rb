@@ -41,8 +41,25 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal true, d.admin
     end
 
-    should_eventually "cast the value" do
-      
+    should "return time as time" do
+      a = PersistentArticle.new created: Time.new(2011, 11, 9).utc
+      assert_instance_of Time, a.created
+    end
+
+    should "return boolean as boolean" do
+      m = ModelWithBooleans.new published: false, approved: true
+      assert_instance_of FalseClass, m.published
+      assert_instance_of TrueClass,  m.approved
+    end
+
+    should "cast the value" do
+      m = ModelWithCasting.new thing: { :value => 1 }, stuff: [1, 2, 3]
+
+      assert_instance_of ModelWithCasting::Thing, m.thing
+      assert_instance_of ModelWithCasting::Stuff, m.stuff
+
+      assert_equal 1, m.thing.value
+      assert_equal 1, m.stuff.values.first
     end
 
   end
@@ -50,7 +67,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
   context "Class" do
 
     should "have properties" do
-      assert_equal ['id', 'title'], PersistentArticle.properties
+      assert_equal ['id', 'title', 'created'], PersistentArticle.properties
     end
 
   end
@@ -64,7 +81,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     end
 
     should "have attributes" do
-      assert_equal ['id', 'title'], PersistentArticle.new.attributes.keys
+      assert_equal ['id', 'title', 'created'], PersistentArticle.new.attributes.keys
     end
 
     should "not persist by default" do
