@@ -3,6 +3,14 @@ class PersistentArticle
 
   property :id
   property :title
+  property :created
+end
+
+class ModelWithBooleans
+  include Redis::Persistence
+
+  property :published
+  property :approved
 end
 
 class ModelWithDefaults
@@ -36,12 +44,23 @@ end
 class ModelWithCasting
 
   class Thing
+    attr_reader :value
+
+    def initialize(params={})
+      @value = params[:value]
+    end
+  end
+
+  class Stuff
+    attr_reader :values
+
+    def initialize(values)
+      @values = values
+    end
   end
 
   include Redis::Persistence
 
-  property :thing,  :class => Thing
-  property :things, :class => [Thing]
-
-  property :created, :class => Time
+  property :thing,   :class => Thing
+  property :stuff,   :class => Stuff
 end
