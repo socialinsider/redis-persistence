@@ -1,7 +1,6 @@
 class PersistentArticle
   include Redis::Persistence
 
-  property :id
   property :title
   property :created
 end
