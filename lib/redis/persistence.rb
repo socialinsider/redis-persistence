@@ -100,9 +100,9 @@ class Redis
       end
 
       def find_each(options={}, &block)
-        options = { :batch_size => 1000 }.update(options)
-        __all_ids.each_slice options[:batch_size] do |batch|
-          __find_many(batch).each { |document| yield document }
+        batch_size = options.delete(:batch_size) || 1000
+        __all_ids.each_slice batch_size do |batch|
+          __find_many(batch, options).each { |document| yield document }
         end
       end
 
