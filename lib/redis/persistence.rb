@@ -76,14 +76,9 @@ class Redis
         @property_families ||= { :data => ['id'] }
       end
 
-      # def find(args, options={})
-      #   case args
-      #     when :all
-      #       __find_all(options)
-      #     else
-      #       __find_one(args, options)
-      #   end
-      # end
+      def find(args, options={})
+        args.is_a?(Array) ? __find_many(args, options) : __find_one(args, options)
+      end
 
       def __find_one(id, options={})
         families = ['data'] | Array(options[:families])
@@ -94,13 +89,16 @@ class Redis
           self.new attributes
         end
       end
-      alias :find :__find_one
 
       def __find_all(options={})
-        ids = __redis.keys("#{self.model_name.plural}:*").sort
-        ids.map { |id| __find_one(id[/:(\d+)$/, 1], options) }.compact
+        ids = __redis.keys("#{self.model_name.plural}:*").map { |id| id[/:(\d+)$/, 1] }.sort
+        __find_many ids
       end
       alias :all :__find_all
+
+      def __find_many(ids, options={})
+        ids.map { |id| __find_one(id, options) }.compact
+      end
 
       def __next_id
         __redis.incr("#{self.model_name.plural}_ids")
