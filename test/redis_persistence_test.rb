@@ -125,6 +125,12 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert in_redis.keys.size > 0, 'Key not saved into Redis?'
     end
 
+    should "return all instances" do
+      3.times { |i| PersistentArticle.create title: "#{i+1}" }
+      assert_equal 3,   PersistentArticle.all.size
+      assert_equal '3', PersistentArticle.all.last.title
+    end
+
   end
 
   context "Instance" do

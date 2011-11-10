@@ -76,7 +76,16 @@ class Redis
         @property_families ||= { :data => ['id'] }
       end
 
-      def find(id, options={})
+      # def find(args, options={})
+      #   case args
+      #     when :all
+      #       __find_all(options)
+      #     else
+      #       __find_one(args, options)
+      #   end
+      # end
+
+      def __find_one(id, options={})
         families = ['data'] | Array(options[:families])
         data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
 
@@ -85,9 +94,16 @@ class Redis
           self.new attributes
         end
       end
+      alias :find :__find_one
+
+      def __find_all(options={})
+        ids = __redis.keys("#{self.model_name.plural}:*").sort
+        ids.map { |id| __find_one(id[/:(\d+)$/, 1], options) }.compact
+      end
+      alias :all :__find_all
 
       def __next_id
-        __redis.incr("#{self.model_name.plural}:__ids__")
+        __redis.incr("#{self.model_name.plural}_ids")
       end
 
     end
