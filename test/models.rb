@@ -1,3 +1,17 @@
+class Piece
+  def initialize(params)
+    @attributes = HashWithIndifferentAccess.new(params)
+  end
+
+  def method_missing(method_name, *arguments)
+    @attributes[method_name]
+  end
+
+  def as_json(*)
+    @attributes
+  end
+end
+
 class PersistentArticle
   include Redis::Persistence
 
@@ -57,15 +71,16 @@ class ModelWithCasting
       @values = values
     end
 
-    def as_json
+    def as_json(*)
       values
     end
   end
 
   include Redis::Persistence
 
-  property :thing,   :class => Thing
-  property :stuff,   :class => Stuff
+  property :thing,  :class => Thing
+  property :stuff,  :class => Stuff,   :default => []
+  property :pieces, :class => [Piece], :default => []
 end
 
 class ModelWithDeepHashes
@@ -83,4 +98,9 @@ class ModelWithFamily
   property :visits, :family => 'counters'
 
   property :lang,   :family => 'meta'
+end
+
+class ModelWithCastingInFamily
+  include Redis::Persistence
+  property :pieces, :class => [Piece], :default => [], :family => 'meta'
 end

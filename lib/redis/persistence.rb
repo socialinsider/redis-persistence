@@ -159,7 +159,11 @@ class Redis
         attributes.each do |name, value|
           case
           when klass = self.class.property_types[name.to_sym]
-            send "#{name}=", klass.new(value)
+            if klass.is_a?(Array) && value.is_a?(Array)
+              send "#{name}=", value.map { |v| klass.first.new(v) }
+            else
+              send "#{name}=", klass.new(value)
+            end
           when value.is_a?(Hash)
             send "#{name}=", Hashr.new(value)
           else

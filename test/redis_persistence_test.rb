@@ -69,11 +69,25 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     end
 
     should "cast the value" do
-      m = ModelWithCasting.create thing: { :value => 1 }, stuff: [1, 2, 3]
+      m = ModelWithCasting.new
+      assert_equal [], m.stuff.values
+
+      m = ModelWithCasting.new
+      assert_equal [], m.pieces
+
+      m = ModelWithCasting.create thing: { :value => 1 }, stuff: [1, 2, 3], pieces: [ { name: 'One', level: 42 } ]
+
       assert_instance_of ModelWithCasting::Thing, m.thing
-      assert_instance_of ModelWithCasting::Stuff, m.stuff
       assert_equal 1, m.thing.value
+
+      assert_instance_of ModelWithCasting::Stuff, m.stuff
       assert_equal 1, m.stuff.values.first
+
+      assert_instance_of Array, m.pieces
+      assert_instance_of Piece, m.pieces.first
+
+      assert_equal 'One', m.pieces.first.name
+      assert_equal 42,    m.pieces.first.level
 
       m = ModelWithCasting.find(1)
       assert_instance_of ModelWithCasting::Thing, m.thing
@@ -122,6 +136,19 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 'F',  m.name
       assert_equal 10,   m.visits
       assert_equal 'en', m.lang
+    end
+
+    should "cast the values" do
+      m = ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
+      m.save
+
+      m = ModelWithCastingInFamily.find(1)
+      assert_equal [], m.pieces
+      assert_nil       m.pieces.first
+
+      m = ModelWithCastingInFamily.find(1, :families => 'meta')
+      assert_not_nil   m.pieces.first
+      assert_equal 42, m.pieces.first.level
     end
 
   end
