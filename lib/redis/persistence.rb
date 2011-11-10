@@ -5,6 +5,9 @@ require 'active_model'
 require 'active_support/concern'
 require 'active_support/configurable'
 
+# TODO: Breaks app with "undefined method `config' for Redis::Persistence:Module"
+# require 'persistence/railtie' if defined?(Rails)
+
 class Redis
   module Persistence
     include ActiveSupport::Configurable
