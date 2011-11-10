@@ -164,6 +164,16 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 0, in_redis.keys.size, 'Key not removed from Redis?'
     end
 
+    should "update attributes" do
+      a = PersistentArticle.new title: 'Old'
+      a.save
+
+      assert a.update_attributes title: 'New'
+
+      a = PersistentArticle.find(1)
+      assert_equal 'New', a.title
+    end
+
     should "get auto-incrementing ID on save when none is passed" do
       article = PersistentArticle.new title: 'One'
 

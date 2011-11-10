@@ -98,19 +98,16 @@ class Redis
       attr_accessor :id
 
       def initialize(attributes={})
-        self.class.property_defaults.merge(attributes).each do |name, value|
-          case
-          when klass = self.class.property_types[name.to_sym]
-            send "#{name}=", klass.new(value)
-          when value.is_a?(Hash)
-            send "#{name}=", Hashr.new(value)
-          else
-            send "#{name}=", value
-          end
-        end
+        __update_attributes self.class.property_defaults.merge(attributes)
         self
       end
       alias :attributes= :initialize
+
+      def update_attributes(attributes={})
+        __update_attributes attributes
+        save
+        self
+      end
 
       def attributes
         self.class.
@@ -142,6 +139,19 @@ class Redis
 
       def inspect
         "#<#{self.class}: #{attributes}>"
+      end
+
+      def __update_attributes(attributes)
+        attributes.each do |name, value|
+          case
+          when klass = self.class.property_types[name.to_sym]
+            send "#{name}=", klass.new(value)
+          when value.is_a?(Hash)
+            send "#{name}=", Hashr.new(value)
+          else
+            send "#{name}=", value
+          end
+        end
       end
 
     end
