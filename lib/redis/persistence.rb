@@ -163,6 +163,8 @@ class Redis
           when value.is_a?(Hash)
             send "#{name}=", Hashr.new(value)
           else
+            # Automatically convert <http://en.wikipedia.org/wiki/ISO8601> formatted strings to Time
+            value = Time.parse(value) if value.is_a?(String) && value =~ /^\d{4}[\/\-]\d{2}[\/\-]\d{2}T\d{2}\:\d{2}\:\d{2}Z$/
             send "#{name}=", value
           end
         end

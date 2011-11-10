@@ -51,10 +51,11 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     end
 
     should "return time as time" do
-      a = PersistentArticle.new created: Time.new(2011, 11, 9).utc
+      a = PersistentArticle.create created: Time.new(2011, 11, 9).utc
       assert_instance_of Time, a.created
 
-      
+      a = PersistentArticle.find(1)
+      assert_instance_of Time, a.created
     end
 
     should "return boolean as boolean" do
