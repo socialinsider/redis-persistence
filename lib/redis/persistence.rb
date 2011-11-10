@@ -5,6 +5,8 @@ require 'active_model'
 require 'active_support/concern'
 require 'active_support/configurable'
 
+require File.expand_path('../persistence/railtie', __FILE__) if defined?(Rails)
+
 class Redis
   module Persistence
     include ActiveSupport::Configurable
