@@ -44,6 +44,10 @@ class Redis
 
     module ClassMethods
 
+      def create(attributes={})
+        new(attributes).save
+      end
+
       def property(name, options = {})
         attr_accessor name.to_sym
         properties << name.to_s unless properties.include?(name.to_s)

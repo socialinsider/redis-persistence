@@ -118,6 +118,13 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 2, PersistentArticle.__next_id
     end
 
+    should "create new instance" do
+      a = PersistentArticle.create title: 'One'
+      assert          a.persisted?
+      assert_equal 1, a.id
+      assert in_redis.keys.size > 0, 'Key not saved into Redis?'
+    end
+
   end
 
   context "Instance" do
