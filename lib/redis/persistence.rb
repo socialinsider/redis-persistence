@@ -91,8 +91,7 @@ class Redis
       end
 
       def __find_all(options={})
-        ids = __redis.keys("#{self.model_name.plural}:*").map { |id| id[/:(\d+)$/, 1] }.sort
-        __find_many ids
+        __find_many __all_ids
       end
       alias :all :__find_all
 
@@ -100,8 +99,19 @@ class Redis
         ids.map { |id| __find_one(id, options) }.compact
       end
 
+      def find_each(options={}, &block)
+        options = { :batch_size => 1000 }.update(options)
+        __all_ids.each_slice options[:batch_size] do |batch|
+          __find_many(batch).each { |document| yield document }
+        end
+      end
+
       def __next_id
         __redis.incr("#{self.model_name.plural}_ids")
+      end
+
+      def __all_ids
+        __redis.keys("#{self.model_name.plural}:*").map { |id| id[/:(\d+)$/, 1].to_i }.sort
       end
 
     end

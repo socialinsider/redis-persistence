@@ -192,6 +192,19 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal '6', articles[2].title
     end
 
+    should "return instances in batches" do
+      runs = 0
+      100.times { |i| PersistentArticle.create title: "#{i+1}" }
+
+      PersistentArticle.find_each :batch_size => 10 do |article|
+        article.title += ' (touched)' and article.save
+        runs += 1
+      end
+
+      assert_equal 100, runs
+      assert_match /touched/, PersistentArticle.find(1).title
+    end
+
   end
 
   context "Instance" do
