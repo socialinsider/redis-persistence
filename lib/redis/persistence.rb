@@ -5,8 +5,6 @@ require 'active_model'
 require 'active_support/concern'
 require 'active_support/configurable'
 
-require 'redis-persistence/version'
-
 class Redis
   module Persistence
     include ActiveSupport::Configurable

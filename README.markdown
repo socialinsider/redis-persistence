@@ -7,7 +7,7 @@ and thus easily used both standalone or in a Rails project.
 ## Usage ##
 
 ```ruby
-require 'redis-persistence'
+require 'redis/persistence'
 
 Redis::Persistence.config.redis = Redis.new
 # => #<Redis client v2.2.2 connected to redis://127.0.0.1:6379/0 (Redis v2.4.1)>
