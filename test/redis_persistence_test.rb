@@ -37,10 +37,15 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
     should "return nil for not passed attributes" do
       assert_nil PersistentArticle.new.title
+      assert_nil PersistentArticle.create.title
     end
 
     should "return default values" do
-      d = ModelWithDefaults.new
+      d = ModelWithDefaults.create
+      assert_equal '(Unknown)', d.title
+      assert_equal true, d.admin
+
+      d = ModelWithDefaults.find(1)
       assert_equal '(Unknown)', d.title
       assert_equal true, d.admin
     end
@@ -48,26 +53,39 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     should "return time as time" do
       a = PersistentArticle.new created: Time.new(2011, 11, 9).utc
       assert_instance_of Time, a.created
+
+      
     end
 
     should "return boolean as boolean" do
-      m = ModelWithBooleans.new published: false, approved: true
+      m = ModelWithBooleans.create published: false, approved: true
+      assert_instance_of FalseClass, m.published
+      assert_instance_of TrueClass,  m.approved
+
+      m = ModelWithBooleans.find(1)
       assert_instance_of FalseClass, m.published
       assert_instance_of TrueClass,  m.approved
     end
 
     should "cast the value" do
-      m = ModelWithCasting.new thing: { :value => 1 }, stuff: [1, 2, 3]
-
+      m = ModelWithCasting.create thing: { :value => 1 }, stuff: [1, 2, 3]
       assert_instance_of ModelWithCasting::Thing, m.thing
       assert_instance_of ModelWithCasting::Stuff, m.stuff
+      assert_equal 1, m.thing.value
+      assert_equal 1, m.stuff.values.first
 
+      m = ModelWithCasting.find(1)
+      assert_instance_of ModelWithCasting::Thing, m.thing
+      assert_instance_of ModelWithCasting::Stuff, m.stuff
       assert_equal 1, m.thing.value
       assert_equal 1, m.stuff.values.first
     end
 
     should "provide easy access to deep hashes" do
-      m = ModelWithDeepHashes.new tree: { trunk: { branch: 'leaf' } }
+      m = ModelWithDeepHashes.create tree: { trunk: { branch: 'leaf' } }
+      assert_equal 'leaf', m.tree.trunk.branch
+
+      m = ModelWithDeepHashes.find(1)
       assert_equal 'leaf', m.tree.trunk.branch
     end
 

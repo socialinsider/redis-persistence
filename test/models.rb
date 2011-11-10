@@ -46,7 +46,7 @@ class ModelWithCasting
     attr_reader :value
 
     def initialize(params={})
-      @value = params[:value]
+      @value = params[:value] || params['value']
     end
   end
 
@@ -55,6 +55,10 @@ class ModelWithCasting
 
     def initialize(values)
       @values = values
+    end
+
+    def as_json
+      values
     end
   end
 
