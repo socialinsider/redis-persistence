@@ -54,44 +54,36 @@ puts        '-'*80, ''
 run "bundle install"
 
 puts
-say_status  "Model", "Adding the Article resource...", :yellow
+say_status  "Model", "Generating the Article resource with Redis::Persistence...", :yellow
 puts        '-'*80, ''; sleep 1
 
-generate :scaffold, "Article title:string content:text published:date"
+generate :scaffold, "Article title:string content:text published:boolean --orm=redis_persistence"
 route "root :to => 'articles#index'"
 
 git :add => '.'
-git :commit => "-m 'Added the Article resource'"
+git :commit => "-m 'Generated the Article resource\n\n(Redis::Persistence-based model, scaffolded controller/views/tests)'"
 
 puts
-say_status  "Model", "Adding Redis::Persistence into the Article model...", :yellow
+say_status  "Initializer", "Adding configuration for Redis::Persistence...", :yellow
 puts        '-'*80, ''; sleep 1
 
-run "rm -f app/models/article.rb"
-file 'app/models/article.rb', <<-CODE
-class Article
-  include Redis::Persistence
+# initializer 'redis-persistence.rb', <<-CODE
+# Redis::Persistence.config.redis = Redis.new(:db => 14)
+# CODE
 
-  property :title
-  property :content
-  property :published
-end
-CODE
+generate 'redis_persistence:initializer', "14"
 
-initializer 'redis-persistence.rb', <<-CODE
-Redis::Persistence.config.redis = Redis.new(:db => 14)
-CODE
-
-git :commit => "-a -m 'Added Redis::Persistence into the Article model, added initializer (Redis DB=14)'"
+git :add => 'config/initializers/redis-persistence.rb'
+git :commit => "-a -m 'Added initializer for Redis::Persistence\n\n(Find your data with `redis-cli -n 14 keys articles:*`)'"
 
 puts
 say_status  "Database", "Seeding the database with data...", :yellow
 puts        '-'*80, ''; sleep 0.25
 
-run "rm -rf db/migrate"
-run "redis-cli -n 14 flushdb"
-run "rm -f db/seeds.rb"
-file 'db/seeds.rb', <<-CODE
+remove_file 'db/seeds.rb'
+file        'db/seeds.rb', <<-CODE
+Redis::Persistence.config.redis.flushdb
+
 contents = [
 'Lorem ipsum dolor sit amet.',
 'Consectetur adipisicing elit, sed do eiusmod tempor incididunt.',
@@ -102,7 +94,7 @@ contents = [
 
 puts "Creating articles..."
 %w[ One Two Three Four Five ].each_with_index do |title, i|
-  Article.create title: title, content: contents[i], published: i.days.ago.utc
+  Article.create title: title, content: contents[i], published: (rand > 0.5 ? true : false)
 end
 CODE
 
