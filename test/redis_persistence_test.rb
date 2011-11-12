@@ -224,24 +224,44 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     end
 
     should "be saved and found in Redis" do
-      article = PersistentArticle.new id: 1, title: 'One'
+      article = PersistentArticle.new title: 'One'
       assert article.save
       assert in_redis.exists("persistent_articles:1")
 
-      assert PersistentArticle.find(1)
+      assert_equal 1, PersistentArticle.all.size
+      assert_not_nil  PersistentArticle.find(1)
       assert in_redis.keys.size > 0, 'Key not saved into Redis?'
       assert_equal 'One', PersistentArticle.find(1).title
     end
 
     should "be deleted from Redis" do
-      article = PersistentArticle.new id: 1, title: 'One'
+      article = PersistentArticle.new title: 'One'
       assert article.save
+      keys_count = in_redis.keys.size
+
       assert_not_nil PersistentArticle.find(1)
-      assert in_redis.keys.size > 0, 'Key not saved into Redis?'
+      assert keys_count > 0, 'Key not saved into Redis?'
 
       article.destroy
       assert_nil PersistentArticle.find(1)
-      assert_equal 0, in_redis.keys.size, 'Key not removed from Redis?'
+      assert in_redis.keys.size < keys_count, 'Key not removed from Redis?'
+    end
+
+    should "be saved, found and deleted with an arbitrary ID" do
+      article = PersistentArticle.new id: 'abc123', title: 'Special'
+      assert article.save
+      keys_count = in_redis.keys.size
+
+      assert_equal 1, PersistentArticle.all.size
+      assert_not_nil  PersistentArticle.find('abc123')
+
+      assert keys_count > 0, 'Key not saved into Redis?'
+      assert_equal 'Special', PersistentArticle.find('abc123').title
+
+      assert article.destroy
+      assert_equal 0, PersistentArticle.all.size
+      assert_nil      PersistentArticle.find('abc123')
+      assert in_redis.keys.size < keys_count, 'Key not removed from Redis?'
     end
 
     should "update attributes" do

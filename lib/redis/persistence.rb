@@ -113,7 +113,7 @@ class Redis
       end
 
       def __all_ids
-        __redis.keys("#{self.model_name.plural}:*").map { |id| id[/:(\d+)$/, 1].to_i }.sort
+        __redis.keys("#{self.model_name.plural}:*").map { |id| id[/:(.+)$/, 1] }.sort
       end
 
     end
