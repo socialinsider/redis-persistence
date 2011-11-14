@@ -8,6 +8,26 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     Redis::Persistence.config.redis
   end
 
+  context "Configuration" do
+
+    should "be configurable" do
+      assert_respond_to Redis::Persistence, :config
+      assert_nothing_raised do
+        Redis::Persistence.config.foo = 'bar'
+        assert_equal 'bar', Redis::Persistence.config.foo
+      end
+    end
+
+    should "be configurable with a block" do
+      assert_respond_to Redis::Persistence, :configure
+      assert_nothing_raised do
+        Redis::Persistence.configure { |config| config.foo = 'bar' }
+        assert_equal 'bar', Redis::Persistence.config.foo
+      end
+    end
+
+  end
+
   context "Redis Connection" do
   
     should "be set" do

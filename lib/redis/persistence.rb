@@ -9,8 +9,15 @@ require File.expand_path('../persistence/railtie', __FILE__) if defined?(Rails)
 
 class Redis
   module Persistence
-    include ActiveSupport::Configurable
     extend  ActiveSupport::Concern
+
+    def self.config
+      @__config ||= Hashr.new
+    end
+
+    def self.configure
+      yield config
+    end
 
     included do
       include ActiveModelIntegration
@@ -23,7 +30,6 @@ class Redis
       def __redis
         self.class.__redis
       end
-
     end
 
     module ActiveModelIntegration
