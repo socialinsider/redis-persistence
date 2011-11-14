@@ -16,6 +16,10 @@ module RedisPersistence
 
       hook_for :test_framework
 
+      def module_namespacing(&block)
+        yield if block
+      end unless methods.include?(:module_namespacing)
+
     end
 
   end
