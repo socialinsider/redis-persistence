@@ -28,10 +28,16 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
   end
 
-  context "Redis Connection" do
+  context "Redis" do
+    teardown { Redis::Persistence.config.redis = Redis.new db: ENV['REDIS_PERSISTENCE_TEST_DATABASE'] || 14 }
   
     should "be set" do
       assert_nothing_raised { in_redis.info }
+    end
+
+    should_eventually "raise error when trying to access it when not configured" do
+      Redis::Persistence.config.redis = nil
+      assert_raise(Redis::Persistence::RedisNotAvailable) { Redis::Persistence.config.redis }
     end
   
   end

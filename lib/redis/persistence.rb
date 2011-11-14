@@ -11,6 +11,8 @@ class Redis
   module Persistence
     extend  ActiveSupport::Concern
 
+    class RedisNotAvailable < StandardError; end
+
     def self.config
       @__config ||= Hashr.new
     end
