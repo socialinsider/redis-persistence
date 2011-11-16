@@ -95,7 +95,7 @@ class Redis
         data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
 
         unless data.compact.empty?
-          attributes = data.inject({}) { |hash, item| hash.update( MultiJson.decode(item) ); hash }
+          attributes = data.inject({}) { |hash, item| hash.update( MultiJson.decode(item, :symbolize_keys => true) ); hash }
           self.new attributes
         end
       end
