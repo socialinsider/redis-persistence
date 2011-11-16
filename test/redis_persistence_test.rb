@@ -30,7 +30,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
   context "Redis" do
     teardown { Redis::Persistence.config.redis = Redis.new db: ENV['REDIS_PERSISTENCE_TEST_DATABASE'] || 14 }
-  
+
     should "be set" do
       assert_nothing_raised { in_redis.info }
     end
@@ -39,9 +39,9 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       Redis::Persistence.config.redis = nil
       assert_raise(Redis::Persistence::RedisNotAvailable) { Redis::Persistence.config.redis }
     end
-  
+
   end
-  
+
   context "Defining properties" do
 
     should "define accessors from attributes" do
@@ -332,6 +332,16 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
       assert ! m.valid?
       assert_equal 1, m.errors.to_a.size
+    end
+
+    should "not affect default value" do
+      m = ModelWithDefaultArray.new
+      m.accounts << "account_1"
+
+      m.options[:switches] << "switch_1"
+
+      assert_equal [], ModelWithDefaultArray.new.accounts
+      assert_equal [], ModelWithDefaultArray.new.options[:switches]
     end
 
   end
