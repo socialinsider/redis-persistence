@@ -109,5 +109,6 @@ class ModelWithDefaultArray
   include Redis::Persistence
 
   property :accounts, :default => []
-  property :options,  :default => {:switches => []}
+  property :options,  :default => { :switches => []}
+  property :deep,     :default => { :one => { :two => { :three => [] } } }
 end

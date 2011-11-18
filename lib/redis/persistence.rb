@@ -78,16 +78,6 @@ class Redis
         @property_defaults ||= {}
       end
 
-      def attributes_with_defaults(attributes = {})
-        property_defaults.each_pair do |name, value|
-          unless attributes.keys.include?(name)
-            attributes[name] = value.is_a?(Array) || value.is_a?(Hash) ? value.clone : value
-          end
-        end
-
-        attributes
-      end
-
       def property_types
         @property_types ||= {}
       end
@@ -140,7 +130,14 @@ class Redis
       attr_accessor :id
 
       def initialize(attributes={})
-        __update_attributes self.class.attributes_with_defaults(attributes)
+        # Make copy of objects in the property defaults hash
+        property_defaults = self.class.property_defaults.inject({}) do |sum, item|
+          key, value = item
+          sum[key] = value.class.respond_to?(:new) ? value.clone : value
+          sum
+        end
+
+        __update_attributes property_defaults.merge(attributes)
         self
       end
       alias :attributes= :initialize

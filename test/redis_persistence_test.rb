@@ -334,14 +334,22 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 1, m.errors.to_a.size
     end
 
-    should "not affect default value" do
+    should "not change default value when assigning property" do
       m = ModelWithDefaultArray.new
-      m.accounts << "account_1"
 
-      m.options[:switches] << "switch_1"
+      m.accounts                 << "account_1"
+      m.options[:switches]       << "switch_1"
+      m.deep[:one][:two][:three] << 'foo'
+      m.deep.one.two.three       << 'four'
 
       assert_equal [], ModelWithDefaultArray.new.accounts
       assert_equal [], ModelWithDefaultArray.new.options[:switches]
+      assert_equal [], ModelWithDefaultArray.new.deep[:one][:two][:three]
+      assert_equal [], ModelWithDefaultArray.new.deep.one.two.three
+
+      assert_equal [], ModelWithDefaultArray.property_defaults[:accounts]
+      assert_equal [], ModelWithDefaultArray.property_defaults[:options][:switches]
+      assert_equal [], ModelWithDefaultArray.property_defaults[:deep][:one][:two][:three]
     end
 
   end
