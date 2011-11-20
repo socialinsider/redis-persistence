@@ -59,27 +59,37 @@ class Redis
       end
 
       def property(name, options = {})
+        # Getter method
+        #
         attr_reader name.to_sym
 
+        # Setter method
+        #
         define_method("#{name}=") do |value|
-          # When changing property, update also loaded family
-          # TODO: Research ActiveModel's dirty
-          self.__loaded_families |= self.class.property_families.invert.map do |key, value|
-                                      value.to_s if key.map(&:to_s).include?(name.to_s)
-                                    end.compact if \
-                                    (instance_variable_get(:"@#{name}") != value && self.class.property_defaults[name.to_sym] != value)
-          # Store the value in instance variable
+          # When changing property, update also loaded family:
+          if instance_variable_get(:"@#{name}") != value && self.class.property_defaults[name.to_sym] != value
+            self.__loaded_families |= self.class.property_families.invert.map do |key, value|
+                                        value.to_s if key.map(&:to_s).include?(name.to_s)
+                                      end.compact
+          end
+          # Store the value in instance variable:
           instance_variable_set(:"@#{name}", value)
         end
 
+        # Save the property in properties array:
         properties << name.to_s unless properties.include?(name.to_s)
+
+        # Save property default value (when relevant):
         property_defaults[name.to_sym] = options[:default] if options[:default]
+
+        # Save property casting (when relevant):
         property_types[name.to_sym]    = options[:class]   if options[:class]
-        unless options[:family]
-          (property_families[DEFAULT_FAMILY.to_sym] ||= [])   << name.to_s
-        else
-          (property_families[options[:family].to_sym] ||= []) << name.to_s
+
+        # Save the property in corresponding family:
+        if options[:family]; (property_families[options[:family].to_sym] ||= []) << name.to_s
+        else;                (property_families[DEFAULT_FAMILY.to_sym]   ||= []) << name.to_s
         end
+
         self
       end
 
@@ -103,6 +113,13 @@ class Redis
         args.is_a?(Array) ? __find_many(args, options) : __find_one(args, options)
       end
 
+      def find_each(options={}, &block)
+        batch_size = options.delete(:batch_size) || 1000
+        __all_ids.each_slice batch_size do |batch|
+          __find_many(batch, options).each { |document| yield document }
+        end
+      end
+
       def __find_one(id, options={})
         families = [DEFAULT_FAMILY.to_s] | Array(options[:families])
         data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
@@ -115,21 +132,15 @@ class Redis
         end
       end
 
-      def __find_all(options={})
-        __find_many __all_ids
-      end
-      alias :all :__find_all
-
       def __find_many(ids, options={})
         ids.map { |id| __find_one(id, options) }.compact
       end
 
-      def find_each(options={}, &block)
-        batch_size = options.delete(:batch_size) || 1000
-        __all_ids.each_slice batch_size do |batch|
-          __find_many(batch, options).each { |document| yield document }
-        end
+      def __find_all(options={})
+        __find_many __all_ids
       end
+
+      alias :all :__find_all
 
       def __next_id
         __redis.incr("#{self.model_name.plural}_ids")
@@ -146,11 +157,12 @@ class Redis
       attr_writer   :__loaded_families
 
       def initialize(attributes={})
-      self.class.property_families.each do |name, properties|
-        # Store "loaded_families" based on passed attributes, for using on save 
-        self.__loaded_families |= [name.to_s] if ( properties.map(&:to_s) & attributes.keys.map(&:to_s) ).size > 0
-      end
-        # Make copy of objects in the property defaults hash
+        # Store "loaded_families" based on passed attributes, for using when saving:
+        self.class.property_families.each do |name, properties|
+          self.__loaded_families |= [name.to_s] if ( properties.map(&:to_s) & attributes.keys.map(&:to_s) ).size > 0
+        end
+
+        # Make copy of objects in the property defaults hash (so default values are left intact):
         property_defaults = self.class.property_defaults.inject({}) do |sum, item|
           key, value = item
           sum[key] = value.class.respond_to?(:new) ? value.clone : value
@@ -159,8 +171,7 @@ class Redis
 
         __update_attributes property_defaults.merge(attributes)
         self
-      end
-      alias :attributes= :initialize
+      end; alias :attributes= :initialize
 
       def update_attributes(attributes={})
         __update_attributes attributes
@@ -204,16 +215,20 @@ class Redis
       def __update_attributes(attributes)
         attributes.each do |name, value|
           case
+          # Should we cast the value ...
           when klass = self.class.property_types[name.to_sym]
+            # ... as an Array ...
             if klass.is_a?(Array) && value.is_a?(Array)
               send "#{name}=", value.map { |v| klass.first.new(v) }
+            # ... or object?
             else
               send "#{name}=", klass.new(value)
             end
+          # Should we return augmented Hash?
           when value.is_a?(Hash)
             send "#{name}=", Hashr.new(value)
           else
-            # Automatically convert <http://en.wikipedia.org/wiki/ISO8601> formatted strings to Time
+            # Strings formatted as <http://en.wikipedia.org/wiki/ISO8601> are automatically converted to Time
             value = Time.parse(value) if value.is_a?(String) && value =~ /^\d{4}[\/\-]\d{2}[\/\-]\d{2}T\d{2}\:\d{2}\:\d{2}Z$/
             send "#{name}=", value
           end
