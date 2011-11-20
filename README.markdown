@@ -1,50 +1,63 @@
 Redis Persistence
 =================
 
-`Redis::Persistence` is a simple persistence layer for Ruby objects, fully compatible with ActiveModel,
-and thus easily used both standalone or in a Rails project.
+`Redis::Persistence` is a lightweight object persistence framework,
+fully compatible with ActiveModel and based on Redis[http://redis.io],
+easily used standalone or within Rails applications.
 
-## Usage ##
+Installation
+------------
+
+    $ gem install redis-persistence
+
+Features:
+---------
+
+* 100% Rails compatibility
+* 100% ActiveModel compatibility: callbacks, validations, serialization, ...
+* No crazy `has_many`-type of semantics
+* Auto-incrementing IDs
+* Defining default values for properties
+* Casting properties as built-in or custom classes
+* Convenient "dot access" to properties (<tt>article.views.today</tt>)
+* Support for "collections" of embedded objects (eg. article <> comments)
+* Automatic conversion of UTC-formatted strings to Time objects
+
+Basic example
+-------------
 
 ```ruby
-require 'redis/persistence'
+    require 'redis/persistence'
 
-Redis::Persistence.config.redis = Redis.new
-# => #<Redis client v2.2.2 connected to redis://127.0.0.1:6379/0 (Redis v2.4.1)>
+    Redis::Persistence.config.redis = Redis.new
+    # => #<Redis client v2.2.2 connected to redis://127.0.0.1:6379/0 (Redis v2.4.1)>
 
-class Article
-  include Redis::Persistence
+    class Article
+      include Redis::Persistence
 
-  property :id
-  property :title
-  property :body
-  property :author, :default => '(Unknown)'
-end
+      property :title
+      property :body
+      property :author, :default  => '(Unknown)'
+      property :created
+    end
 
-article = Article.new :id => 1, :title => 'Lorem Ipsum'
-# => #<Article: {"id"=>1, "title"=>"Lorem Ipsum", "body"=>nil, "author"=>"(Unknown)"}>
+    Article.create title: 'The Thing', body: 'So, in the beginning...', created: Time.now.utc
 
-article.save
-# => #<Article: {"id"=>1, "title"=>"Lorem Ipsum", "body"=>nil, "author"=>"(Unknown)"}>
+    article = Article.find(1)
+    # => <Article: {"id"=>1, "title"=>"The Thing", ...}>
 
-article = Article.find(1)
-# => #<Article: {"id"=>1, "title"=>"Lorem Ipsum", "body"=>nil, "author"=>"(Unknown)"}>
+    article.title
+    # => Hello World!
 
-article.title
-# => "Lorem Ipsum"
+    article.created.class
+    # => Time
 
-article.author
-# => "(Unknown)"
+    article.title = 'The Cabin'
+    article.save
+    # => <Article: {"id"=>1, "title"=>"The Cabin", ...}>
 ```
 
-It comes with the standard feature set of ActiveModel classes: validations, callbacks, serialization,
-Rails DOM helpers compatibility, etc.
-
-
-## Installation ##
-
-    git clone git://github.com/Ataxo/redis-persistence.git
-    rake install
+See the [`examples/article.rb`](./blob/master/examples/article.rb) for full example.
 
 -----
 
