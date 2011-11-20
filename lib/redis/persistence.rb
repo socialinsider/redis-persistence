@@ -57,9 +57,19 @@ class Redis
       end
 
       def property(name, options = {})
-        attr_accessor name.to_sym
-        properties << name.to_s unless properties.include?(name.to_s)
+        attr_reader name.to_sym
 
+        define_method("#{name}=") do |value|
+          # When changing property, update also loaded family
+          # TODO: Research ActiveModel's dirty
+          self.__loaded_families |= self.class.property_families.invert.map do |key, value|
+                                      value.to_s if key.map(&:to_s).include?(name.to_s)
+                                    end.compact if (self.send(name) != value && self.class.property_defaults[name.to_sym] != value)
+          # Store the value in instance variable
+          instance_variable_set(:"@#{name}", value)
+        end
+
+        properties << name.to_s unless properties.include?(name.to_s)
         property_defaults[name.to_sym] = options[:default] if options[:default]
         property_types[name.to_sym]    = options[:class]   if options[:class]
         unless options[:family]
@@ -95,8 +105,10 @@ class Redis
         data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
 
         unless data.compact.empty?
-          attributes = data.inject({}) { |hash, item| hash.update( MultiJson.decode(item, :symbolize_keys => true) ); hash }
-          self.new attributes
+          attributes = data.compact.inject({}) { |hash, item| hash.update( MultiJson.decode(item, :symbolize_keys => true) ); hash }
+          instance   = self.new attributes
+          instance.__loaded_families = families
+          instance
         end
       end
 
@@ -128,8 +140,13 @@ class Redis
 
     module InstanceMethods
       attr_accessor :id
+      attr_writer   :__loaded_families
 
       def initialize(attributes={})
+      self.class.property_families.each do |name, properties|
+        # Store "loaded_families" based on passed attributes, for using on save 
+        self.__loaded_families |= [name.to_s] if ( properties.map(&:to_s) & attributes.keys.map(&:to_s) ).size > 0
+      end
         # Make copy of objects in the property defaults hash
         property_defaults = self.class.property_defaults.inject({}) do |sum, item|
           key, value = item
@@ -157,8 +174,8 @@ class Redis
       def save
         run_callbacks :save do
           self.id ||= self.class.__next_id
-          params    = self.class.property_families.keys.map do |family|
-                        [family.to_s, self.to_json(:only => self.class.property_families[family])]
+          params    = self.__loaded_families.map do |family|
+                        [family.to_s, self.to_json(:only => self.class.property_families[family.to_sym])]
                       end.flatten
           __redis.hmset "#{self.class.model_name.plural}:#{self.id}", *params
         end
@@ -197,6 +214,10 @@ class Redis
             send "#{name}=", value
           end
         end
+      end
+
+      def __loaded_families
+        @__loaded_families ||= ['data']
       end
 
     end

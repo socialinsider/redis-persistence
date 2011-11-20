@@ -170,11 +170,40 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
       m = ModelWithCastingInFamily.find(1)
       assert_equal [], m.pieces
+      assert_equal [], m.parts
       assert_nil       m.pieces.first
 
       m = ModelWithCastingInFamily.find(1, :families => 'meta')
+      assert_equal [], m.parts
       assert_not_nil   m.pieces.first
       assert_equal 42, m.pieces.first.level
+    end
+
+    should "store loaded families on initialization" do
+      m = ModelWithCastingInFamily.new pieces: [ { name: 'One', level: 42 } ]
+      assert_equal ['data', 'meta'], m.__loaded_families
+
+      m = ModelWithCastingInFamily.new
+      assert_equal ['data'], m.__loaded_families
+    end
+
+    should "store loaded families on find" do
+      ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
+      m = ModelWithCastingInFamily.find(1)
+      assert_equal ['data'], m.__loaded_families
+
+      ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
+      m = ModelWithCastingInFamily.find(1, families: 'meta')
+      assert_equal ['data', 'meta'], m.__loaded_families
+
+    should "update loaded families on property assignment" do
+      m = ModelWithFamily.new name: 'Test'
+      assert_equal ['data'], m.__loaded_families
+      assert_equal 'Test', m.name
+
+      m.views = 100
+      assert_equal ['data', 'counters'], m.__loaded_families
+      assert_equal 100, m.views
     end
 
   end
@@ -350,6 +379,45 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal [], ModelWithDefaultArray.property_defaults[:accounts]
       assert_equal [], ModelWithDefaultArray.property_defaults[:options][:switches]
       assert_equal [], ModelWithDefaultArray.property_defaults[:deep][:one][:two][:three]
+    end
+
+    should "not overwrite properties in not-loaded family with defaults" do
+      m = ModelWithDefaultsInFamilies.new :name => 'One'
+      m.save
+
+      # Return defaults
+      m = ModelWithDefaultsInFamilies.find(1)
+      assert_equal [], m.tags
+
+      # Return defaults
+      m = ModelWithDefaultsInFamilies.find(1, families: 'tags')
+      assert_equal [], m.tags
+
+      # Add tag
+      m = ModelWithDefaultsInFamilies.find(1, families: 'tags')
+      m.tags << 'foo'
+      m.save
+
+      # Return data
+      m = ModelWithDefaultsInFamilies.find(1, :families => 'tags')
+      assert_equal ['foo'], m.tags
+
+      # Return defaults
+      m = ModelWithDefaultsInFamilies.find(1)
+      assert_equal [], m.tags
+
+      # Change another property
+      m = ModelWithDefaultsInFamilies.find(1)
+      m.name = 'Two'
+      m.save
+
+      # Return defaults
+      m = ModelWithDefaultsInFamilies.find(1)
+      assert_equal [], m.tags
+
+      # Return data
+      m = ModelWithDefaultsInFamilies.find(1, :families => 'tags')
+      assert_equal ['foo'], m.tags
     end
 
   end

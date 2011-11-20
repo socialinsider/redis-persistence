@@ -103,6 +103,7 @@ end
 class ModelWithCastingInFamily
   include Redis::Persistence
   property :pieces, :class => [Piece], :default => [], :family => 'meta'
+  property :parts,  :class => [Piece], :default => [], :family => 'meta'
 end
 
 class ModelWithDefaultArray
@@ -111,4 +112,11 @@ class ModelWithDefaultArray
   property :accounts, :default => []
   property :options,  :default => { :switches => []}
   property :deep,     :default => { :one => { :two => { :three => [] } } }
+end
+
+class ModelWithDefaultsInFamilies
+  include Redis::Persistence
+
+  property :name
+  property :tags, :default => [], :family => 'tags'
 end
