@@ -22,6 +22,7 @@ Features:
 * Convenient "dot access" to properties (<tt>article.views.today</tt>)
 * Support for "collections" of embedded objects (eg. article <> comments)
 * Automatic conversion of UTC-formatted strings to Time objects
+* Fast: ~2000 saves/sec, ~6000 finds/sec
 
 Basic example
 -------------
