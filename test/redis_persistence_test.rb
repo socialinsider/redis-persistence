@@ -134,12 +134,12 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
   context "Defining properties in families" do
 
-    should "store properties in the 'data' family by default" do
+    should "store properties in the 'default' family by default" do
       m = ModelWithFamily.new name: 'One'
       m.save
 
       assert in_redis.exists('model_with_families:1'), in_redis.keys.to_s
-      assert in_redis.hkeys('model_with_families:1').include?('data')
+      assert in_redis.hkeys('model_with_families:1').include?('default')
     end
 
     should "store properties in the correct family" do
@@ -148,7 +148,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
       assert_equal 1, m.id
       assert in_redis.exists('model_with_families:1'), in_redis.keys.to_s
-      assert in_redis.hkeys('model_with_families:1').include?('data'),     in_redis.hkeys('model_with_families:1').to_s
+      assert in_redis.hkeys('model_with_families:1').include?('default'),  in_redis.hkeys('model_with_families:1').to_s
       assert in_redis.hkeys('model_with_families:1').include?('counters'), in_redis.hkeys('model_with_families:1').to_s
 
       m = ModelWithFamily.find(1)
@@ -181,28 +181,29 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
     should "store loaded families on initialization" do
       m = ModelWithCastingInFamily.new pieces: [ { name: 'One', level: 42 } ]
-      assert_equal ['data', 'meta'], m.__loaded_families
+      assert_equal ['default', 'meta'], m.__loaded_families
 
       m = ModelWithCastingInFamily.new
-      assert_equal ['data'], m.__loaded_families
+      assert_equal ['default'], m.__loaded_families
     end
 
     should "store loaded families on find" do
       ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
       m = ModelWithCastingInFamily.find(1)
-      assert_equal ['data'], m.__loaded_families
+      assert_equal ['default'], m.__loaded_families
 
       ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
       m = ModelWithCastingInFamily.find(1, families: 'meta')
-      assert_equal ['data', 'meta'], m.__loaded_families
+      assert_equal ['default', 'meta'], m.__loaded_families
+    end
 
     should "update loaded families on property assignment" do
       m = ModelWithFamily.new name: 'Test'
-      assert_equal ['data'], m.__loaded_families
+      assert_equal ['default'], m.__loaded_families
       assert_equal 'Test', m.name
 
       m.views = 100
-      assert_equal ['data', 'counters'], m.__loaded_families
+      assert_equal ['default', 'counters'], m.__loaded_families
       assert_equal 100, m.views
     end
 

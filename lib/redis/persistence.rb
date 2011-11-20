@@ -13,6 +13,8 @@ class Redis
 
     class RedisNotAvailable < StandardError; end
 
+    DEFAULT_FAMILY = 'default'
+
     def self.config
       @__config ||= Hashr.new
     end
@@ -64,7 +66,8 @@ class Redis
           # TODO: Research ActiveModel's dirty
           self.__loaded_families |= self.class.property_families.invert.map do |key, value|
                                       value.to_s if key.map(&:to_s).include?(name.to_s)
-                                    end.compact if (self.send(name) != value && self.class.property_defaults[name.to_sym] != value)
+                                    end.compact if \
+                                    (instance_variable_get(:"@#{name}") != value && self.class.property_defaults[name.to_sym] != value)
           # Store the value in instance variable
           instance_variable_set(:"@#{name}", value)
         end
@@ -73,7 +76,7 @@ class Redis
         property_defaults[name.to_sym] = options[:default] if options[:default]
         property_types[name.to_sym]    = options[:class]   if options[:class]
         unless options[:family]
-          (property_families[:data] ||= [])                   << name.to_s
+          (property_families[DEFAULT_FAMILY.to_sym] ||= [])   << name.to_s
         else
           (property_families[options[:family].to_sym] ||= []) << name.to_s
         end
@@ -93,7 +96,7 @@ class Redis
       end
 
       def property_families
-        @property_families ||= { :data => ['id'] }
+        @property_families ||= { DEFAULT_FAMILY.to_sym => ['id'] }
       end
 
       def find(args, options={})
@@ -101,7 +104,7 @@ class Redis
       end
 
       def __find_one(id, options={})
-        families = ['data'] | Array(options[:families])
+        families = [DEFAULT_FAMILY.to_s] | Array(options[:families])
         data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
 
         unless data.compact.empty?
@@ -217,7 +220,7 @@ class Redis
       end
 
       def __loaded_families
-        @__loaded_families ||= ['data']
+        @__loaded_families ||= [DEFAULT_FAMILY.to_s]
       end
 
     end

@@ -40,7 +40,7 @@ end
 puts "Duration: #{elapsed} seconds, rate: #{COUNT.to_f/elapsed} docs/sec",
      '-'*80
 
-puts "Finding first 1000 documents with only 'data' family..."
+puts "Finding first 1000 documents with only 'default' family..."
 
 elapsed = Benchmark.realtime do
   Article.find (1..1000).to_a
