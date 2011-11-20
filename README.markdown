@@ -49,8 +49,8 @@ Basic example
     article.title
     # => Hello World!
 
-    article.created.class
-    # => Time
+    article.created.year
+    # => 2011
 
     article.title = 'The Cabin'
     article.save
