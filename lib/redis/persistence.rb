@@ -121,7 +121,7 @@ class Redis
       end
 
       def __find_one(id, options={})
-        families = [DEFAULT_FAMILY.to_s] | Array(options[:families])
+        families = options[:families] == 'all' ? property_families.keys : [DEFAULT_FAMILY.to_s] | Array(options[:families])
         data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
 
         unless data.compact.empty?

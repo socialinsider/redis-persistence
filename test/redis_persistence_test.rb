@@ -261,6 +261,20 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_match /touched/, PersistentArticle.find(1).title
     end
 
+    should "load all families" do
+      ModelWithFamily.create name: 'One', views: 10, lang: 'en'
+
+      m = ModelWithFamily.find(1)
+      assert_equal 1, m.__loaded_families.size
+      assert_nil m.views
+
+      m = ModelWithFamily.find(1, families: 'all')
+      assert_equal 3, m.__loaded_families.size
+      assert_equal 'One', m.name
+      assert_equal 10,    m.views
+      assert_equal 'en',  m.lang
+    end
+
   end
 
   context "Instance" do
