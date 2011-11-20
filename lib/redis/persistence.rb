@@ -8,6 +8,43 @@ require 'active_support/configurable'
 require File.expand_path('../persistence/railtie', __FILE__) if defined?(Rails)
 
 class Redis
+
+  # <b>Redis::Persistence</b> is a lightweight object persistence framework,
+  # fully compatible with ActiveModel and based on Redis[http://redis.io].
+  #
+  # Features:
+  #
+  # * 100% Rails compatibility
+  # * 100% ActiveModel compatibility: callbacks, validations, serialization, ...
+  # * No crazy +has_many+-type of semantics
+  # * Auto-incrementing IDs
+  # * Defining default values for properties
+  # * Casting properties as built-in or custom classes
+  # * Convenient "dot access" to properties (<tt>article.views.today</tt>)
+  # * Support for "collections" of embedded objects (eg. article <> comments)
+  # * Automatic conversion of UTC-formatted strings to Time objects
+  #
+  # Basic example:
+  #
+  #     class Article
+  #       include Redis::Persistence
+  #
+  #       property :title
+  #       property :body
+  #       property :author, :default  => '(Unknown)'
+  #       property :created
+  #     end
+  #
+  #     Article.create title: 'Hello World!', body: 'So, in the beginning...', created: Time.now.utc
+  #     article = Article.find(1)
+  #     # => <Article: {"id"=>1, "title"=>"Hello World!", ...}>
+  #     article.title
+  #     # => Hello World!
+  #     article.created.class
+  #     # => Time
+  #
+  # See the <tt>examples/article.rb</tt> for full example.
+  #
   module Persistence
     extend  ActiveSupport::Concern
 
@@ -54,10 +91,30 @@ class Redis
 
     module ClassMethods
 
+      # Create new record in database:
+      #
+      #     Article.create title: 'Lorem Ipsum'
+      #
       def create(attributes={})
         new(attributes).save
       end
 
+      # Define property in the "default" family:
+      #
+      #     property :title
+      #     property :author,   class: Author
+      #     property :comments, default: []
+      #     property :comments, default: [], class: [Comment]
+      #
+      # Specify a custom "family" for this property:
+      #
+      #     property :views, family: 'counters'
+      #
+      # Only the "default" family is loaded... by default,
+      # for performance and limiting used memory.
+      #
+      # See more examples in the <tt>test/models.rb</tt> file.
+      #
       def property(name, options = {})
         # Getter method
         #
@@ -93,26 +150,53 @@ class Redis
         self
       end
 
+      # Returns an Array with all properties
+      #
       def properties
         @properties ||= ['id']
       end
 
+      # Returns a Hash with property default values
+      #
       def property_defaults
         @property_defaults ||= {}
       end
 
+      # Returns a Hash with property casting (classes)
+      #
       def property_types
         @property_types ||= {}
       end
 
+      # Returns a Hash mapping families to properties
+      #
       def property_families
         @property_families ||= { DEFAULT_FAMILY.to_sym => ['id'] }
       end
 
+      # Find one or multiple records
+      #
+      #     Article.find 1
+      #     Article.find [1, 2, 3]
+      #
+      # Specify a family (other then "default"):
+      #
+      #     Article.find 1, families: 'counters'
+      #     Article.find 1, families: ['counters', 'meta']
+      #
       def find(args, options={})
         args.is_a?(Array) ? __find_many(args, options) : __find_one(args, options)
       end
 
+      # Yield each record in the database, loading them in batches
+      # specified as +batch_size+:
+      #
+      #     Article.find_each do |article|
+      #       article.title += ' (touched)' and article.save
+      #     end
+      #
+      # This method is conveninent for batch manipulations of your entire database.
+      #
       def find_each(options={}, &block)
         batch_size = options.delete(:batch_size) || 1000
         __all_ids.each_slice batch_size do |batch|
@@ -140,6 +224,10 @@ class Redis
         __find_many __all_ids
       end
 
+      # Find all records in the database:
+      #
+      #     Article.all
+      #
       alias :all :__find_all
 
       def __next_id
@@ -179,12 +267,30 @@ class Redis
         self
       end
 
+      # Returns a Hash of attributes for serialization, etc
+      #
       def attributes
         self.class.
           properties.
           inject({}) {|attributes, key| attributes[key] = send(key); attributes}
       end
 
+      # Saves the record in the database, performing callbacks:
+      #
+      #     Article.new(title: 'Test').save
+      #
+      # Optionally accepts which families to save:
+      #
+      #     article = Article.find(1, families: 'counters')
+      #     article.views += 1
+      #     article.save(families: ['counters', 'meta'])
+      #
+      # You can also save all families:
+      #
+      #     Article.find(1, families: 'all').update_attributes(title: 'Changed').save(families: 'all')
+      #
+      # Be careful not to overwrite properties with default values.
+      #
       def save(options={})
         run_callbacks :save do
           self.id ||= self.class.__next_id
@@ -197,6 +303,8 @@ class Redis
         self
       end
 
+      # Removes the record from the database, performing callbacks.
+      #
       def destroy
         run_callbacks :destroy do
           __redis.del "#{self.class.model_name.plural}:#{self.id}"
@@ -204,6 +312,8 @@ class Redis
         self.freeze
       end
 
+      # Returns whether record is saved into database
+      #
       def persisted?
         __redis.exists "#{self.class.model_name.plural}:#{self.id}"
       end
@@ -212,6 +322,10 @@ class Redis
         "#<#{self.class}: #{attributes}>"
       end
 
+      # Updates record properties, taking care of casting to specified classes
+      # (single values or collections), augmenting hashes so you can access them with dot notation,
+      # and automatically converting properly formatted time values to Time classes.
+      #
       def __update_attributes(attributes)
         attributes.each do |name, value|
           case
@@ -235,6 +349,8 @@ class Redis
         end
       end
 
+      # Returns which families were loaded in the record lifecycle
+      #
       def __loaded_families
         @__loaded_families ||= [DEFAULT_FAMILY.to_s]
       end
