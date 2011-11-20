@@ -320,6 +320,19 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert in_redis.keys.size < keys_count, 'Key not removed from Redis?'
     end
 
+    should "save all families" do
+      m = ModelWithFamily.new name: 'Test'
+      assert m.save
+      assert_equal 1, in_redis.hkeys("model_with_families:1").size
+
+      m = ModelWithFamily.new name: 'Test'
+      assert m.save(families: 'all')
+      assert in_redis.keys.size > 0, 'Key not saved into Redis?'
+
+      # ["default", "counters", "meta"]
+      assert_equal 3, in_redis.hkeys("model_with_families:2").size
+    end
+
     should "update attributes" do
       a = PersistentArticle.new title: 'Old'
       a.save

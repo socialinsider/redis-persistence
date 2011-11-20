@@ -174,10 +174,11 @@ class Redis
           inject({}) {|attributes, key| attributes[key] = send(key); attributes}
       end
 
-      def save
+      def save(options={})
         run_callbacks :save do
           self.id ||= self.class.__next_id
-          params    = self.__loaded_families.map do |family|
+          families  = options[:families] == 'all' ? self.class.property_families.keys : self.__loaded_families
+          params    = families.map do |family|
                         [family.to_s, self.to_json(:only => self.class.property_families[family.to_sym])]
                       end.flatten
           __redis.hmset "#{self.class.model_name.plural}:#{self.id}", *params
