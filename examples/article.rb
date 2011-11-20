@@ -64,7 +64,7 @@ article.comments << Comment.new(:nick => 'h4x0r', :body => 'WHY U NO USE BBS?')
 p article.comments.size
 # => 2
 
-p article.save
+p article.save(families: 'comments')
 # => <Article: {"id"=>3, ... "comments"=>[{:nick=>"4chan", :body=>"WHY U NO QUIT?"}]}>
 
 article = Article.find(3)
@@ -73,7 +73,7 @@ p article.comments
 
 article = Article.find(3, :families => 'comments')
 p article.comments
-# => [#<Comment:0x007f893180dd08 @attributes={"nick"=>"4chan", "body"=>"WHY U NO QUIT?"}>]
+# => [#<Comment @attributes={"nick"=>"4chan", "body"=>"WHY U NO QUIT?"}>, ...]
 
 p article.comments.first.nick
 # => "4chan"

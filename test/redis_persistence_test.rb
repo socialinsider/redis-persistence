@@ -269,7 +269,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_nil m.views
 
       m = ModelWithFamily.find(1, families: 'all')
-      assert_equal 3, m.__loaded_families.size
+      assert_equal 4, m.__loaded_families.size
       assert_equal 'One', m.name
       assert_equal 10,    m.views
       assert_equal 'en',  m.lang
@@ -334,6 +334,14 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert in_redis.keys.size < keys_count, 'Key not removed from Redis?'
     end
 
+    should "save specific family" do
+      m = ModelWithFamily.new name: 'Test'
+      m.tags << 'a'
+      assert m.save(families: 'tags')
+
+      assert_equal 'a', ModelWithFamily.find(1, families: 'tags').tags.first
+    end
+
     should "save all families" do
       m = ModelWithFamily.new name: 'Test'
       assert m.save
@@ -344,7 +352,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert in_redis.keys.size > 0, 'Key not saved into Redis?'
 
       # ["default", "counters", "meta"]
-      assert_equal 3, in_redis.hkeys("model_with_families:2").size
+      assert_equal 4, in_redis.hkeys("model_with_families:2").size
     end
 
     should "update attributes" do

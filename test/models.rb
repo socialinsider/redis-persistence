@@ -94,10 +94,11 @@ class ModelWithFamily
 
   property :name
 
-  property :views,  :family => 'counters'
-  property :visits, :family => 'counters'
+  property :views,  :family  => 'counters'
+  property :visits, :family  => 'counters'
+  property :tags,   :family  => 'tags', :default => []
 
-  property :lang,   :family => 'meta'
+  property :lang,   :family  => 'meta'
 end
 
 class ModelWithCastingInFamily

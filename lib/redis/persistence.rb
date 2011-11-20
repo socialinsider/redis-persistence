@@ -294,7 +294,9 @@ class Redis
       def save(options={})
         run_callbacks :save do
           self.id ||= self.class.__next_id
-          families  = options[:families] == 'all' ? self.class.property_families.keys : self.__loaded_families
+          families  = if options[:families] == 'all'; self.class.property_families.keys
+                      else;                           self.__loaded_families | Array(options[:families])
+                      end
           params    = families.map do |family|
                         [family.to_s, self.to_json(:only => self.class.property_families[family.to_sym])]
                       end.flatten
