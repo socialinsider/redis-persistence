@@ -68,9 +68,9 @@ p article = Article.find(2)
 p article.author
 # => "(Unknown)"
 
-article = Article.create title: 'OMG BLOG!'
+article = Article.new title: 'OMG BLOG!'
 
-p article.comments
+article.comments
 # => []
 
 article.comments << {nick: '4chan', body: 'WHY U NO QUIT?'}
@@ -84,8 +84,12 @@ p article.save(families: 'comments')
 # => <Article: {"id"=>3, ... "comments"=>[{:nick=>"4chan", :body=>"WHY U NO QUIT?"}]}>
 
 article = Article.find(3)
-p article.comments
-# => []
+begin
+  article.comments
+rescue Exception => e
+  p e
+end
+# => Redis::Persistence::FamilyNotLoaded ...
 
 article = Article.find(3, families: 'comments')
 p article.comments

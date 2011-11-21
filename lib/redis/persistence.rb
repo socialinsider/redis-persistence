@@ -49,6 +49,7 @@ class Redis
     extend  ActiveSupport::Concern
 
     class RedisNotAvailable < StandardError; end
+    class FamilyNotLoaded   < StandardError; end
 
     DEFAULT_FAMILY = 'default'
 
@@ -118,14 +119,22 @@ class Redis
       def property(name, options = {})
         # Getter method
         #
-        attr_reader name.to_sym
+        # attr_reader name.to_sym
+        define_method("#{name}") do
+          raise FamilyNotLoaded, "You are accessing the '#{name}' property in the '#{self.class.property_families[name.to_s]}' family which was not loaded.\nTo prevent you from losing data, this exception was raised. Consider loading the model with the family:\n\n  #{self.class.to_s}.find(#{self.id}, families: '#{self.class.property_families[name.to_s]}')\n\n" if self.persisted? and not self.__loaded_families.include?( self.class.property_families[name.to_s] )
+          # p "---#{name}---"
+          # p self.__loaded_families
+          # p self.class.property_families
+          # p self.class.family_properties
+          instance_variable_get(:"@#{name}")
+        end
 
         # Setter method
         #
         define_method("#{name}=") do |value|
           # When changing property, update also loaded family:
           if instance_variable_get(:"@#{name}") != value && self.class.property_defaults[name.to_sym] != value
-            self.__loaded_families |= self.class.property_families.invert.map do |key, value|
+            self.__loaded_families |= self.class.family_properties.invert.map do |key, value|
                                         value.to_s if key.map(&:to_s).include?(name.to_s)
                                       end.compact
           end
@@ -143,8 +152,12 @@ class Redis
         property_types[name.to_sym]    = options[:class]   if options[:class]
 
         # Save the property in corresponding family:
-        if options[:family]; (property_families[options[:family].to_sym] ||= []) << name.to_s
-        else;                (property_families[DEFAULT_FAMILY.to_sym]   ||= []) << name.to_s
+        if options[:family]
+          (family_properties[options[:family].to_sym] ||= []) << name.to_s
+          property_families[name.to_s] = options[:family].to_s
+        else
+          (family_properties[DEFAULT_FAMILY.to_sym]   ||= []) << name.to_s
+          property_families[name.to_s] = DEFAULT_FAMILY.to_s
         end
 
         self
@@ -168,10 +181,16 @@ class Redis
         @property_types ||= {}
       end
 
-      # Returns a Hash mapping families to properties
+      # Returns a Hash mapping properties to families
       #
       def property_families
-        @property_families ||= { DEFAULT_FAMILY.to_sym => ['id'] }
+        @property_families ||= { 'id' => DEFAULT_FAMILY.to_s }
+      end
+
+      # Returns a Hash mapping families to properties
+      #
+      def family_properties
+        @family_properties ||= { DEFAULT_FAMILY.to_sym => ['id'] }
       end
 
       # Find one or multiple records
@@ -205,7 +224,7 @@ class Redis
       end
 
       def __find_one(id, options={})
-        families = options[:families] == 'all' ? property_families.keys : [DEFAULT_FAMILY.to_s] | Array(options[:families])
+        families = options[:families] == 'all' ? family_properties.keys.map(&:to_s) : [DEFAULT_FAMILY.to_s] | Array(options[:families])
         data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
 
         unless data.compact.empty?
@@ -246,7 +265,7 @@ class Redis
 
       def initialize(attributes={})
         # Store "loaded_families" based on passed attributes, for using when saving:
-        self.class.property_families.each do |name, properties|
+        self.class.family_properties.each do |name, properties|
           self.__loaded_families |= [name.to_s] if ( properties.map(&:to_s) & attributes.keys.map(&:to_s) ).size > 0
         end
 
@@ -272,7 +291,14 @@ class Redis
       def attributes
         self.class.
           properties.
-          inject({}) {|attributes, key| attributes[key] = send(key); attributes}
+          inject({}) do |attributes, key|
+            begin
+              attributes[key] = send(key)
+            rescue FamilyNotLoaded
+              attributes[key] = "[NOT LOADED]"
+            end
+            attributes
+          end
       end
 
       # Saves the record in the database, performing callbacks:
@@ -294,11 +320,11 @@ class Redis
       def save(options={})
         run_callbacks :save do
           self.id ||= self.class.__next_id
-          families  = if options[:families] == 'all'; self.class.property_families.keys
+          families  = if options[:families] == 'all'; self.class.family_properties.keys
                       else;                           self.__loaded_families | Array(options[:families])
                       end
           params    = families.map do |family|
-                        [family.to_s, self.to_json(:only => self.class.property_families[family.to_sym])]
+                        [family.to_s, self.to_json(:only => self.class.family_properties[family.to_sym])]
                       end.flatten
           __redis.hmset "#{self.class.model_name.plural}:#{self.id}", *params
         end
