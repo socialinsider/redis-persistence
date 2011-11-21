@@ -2,7 +2,7 @@ Redis Persistence
 =================
 
 `Redis::Persistence` is a lightweight object persistence framework,
-fully compatible with ActiveModel and based on Redis[http://redis.io],
+fully compatible with _ActiveModel_, based on [_Redis_](http://redis.io),
 easily used standalone or within Rails applications.
 
 Installation
@@ -20,8 +20,9 @@ Features:
 * Defining default values for properties
 * Casting properties as built-in or custom classes
 * Convenient "dot access" to properties (<tt>article.views.today</tt>)
-* Support for "collections" of embedded objects (eg. article <> comments)
+* Support for "collections" of embedded objects (eg. article » comments)
 * Automatic conversion of UTC-formatted strings to Time objects
+* Small: 1 file, ~ 200 lines of code
 * Fast: ~2000 saves/sec, ~6000 finds/sec
 
 Basic example
@@ -58,7 +59,7 @@ Basic example
     # => <Article: {"id"=>1, "title"=>"The Cabin", ...}>
 ```
 
-See the [`examples/article.rb`](./blob/master/examples/article.rb) for full example.
+See the [`examples/article.rb`](http://github.com/Ataxo/redis-persistence/blob/master/examples/article.rb) for full example.
 
 -----
 
