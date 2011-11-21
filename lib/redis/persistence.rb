@@ -300,7 +300,7 @@ class Redis
           params    = families.map do |family|
                         [family.to_s, self.to_json(:only => self.class.property_families[family.to_sym])]
                       end.flatten
-          __redis.hmset "#{self.class.model_name.plural}:#{self.id}", *params
+          __redis.hmset __redis_key, *params
         end
         self
       end
@@ -309,7 +309,7 @@ class Redis
       #
       def destroy
         run_callbacks :destroy do
-          __redis.del "#{self.class.model_name.plural}:#{self.id}"
+          __redis.del __redis_key
         end
         self.freeze
       end
@@ -317,11 +317,17 @@ class Redis
       # Returns whether record is saved into database
       #
       def persisted?
-        __redis.exists "#{self.class.model_name.plural}:#{self.id}"
+        __redis.exists __redis_key
       end
 
       def inspect
         "#<#{self.class}: #{attributes}>"
+      end
+
+      # Returns redis key of instance
+      #
+      def __redis_key
+        "#{self.class.model_name.plural}:#{self.id}"
       end
 
       # Updates record properties, taking care of casting to specified classes
