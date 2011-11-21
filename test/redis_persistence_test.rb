@@ -153,7 +153,6 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
       m = ModelWithFamily.find(1)
       assert_not_nil m.name
-      assert_nil     m.views
 
       m = ModelWithFamily.find(1, :families => ['counters', 'meta'])
       assert_not_nil m.name
@@ -167,11 +166,6 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     should "cast the values" do
       m = ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
       m.save
-
-      m = ModelWithCastingInFamily.find(1)
-      assert_equal [], m.pieces
-      assert_equal [], m.parts
-      assert_nil       m.pieces.first
 
       m = ModelWithCastingInFamily.find(1, :families => 'meta')
       assert_equal [], m.parts
@@ -266,7 +260,6 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
       m = ModelWithFamily.find(1)
       assert_equal 1, m.__loaded_families.size
-      assert_nil m.views
 
       m = ModelWithFamily.find(1, families: 'all')
       assert_equal 4, m.__loaded_families.size
@@ -418,12 +411,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     end
 
     should "not overwrite properties in not-loaded family with defaults" do
-      m = ModelWithDefaultsInFamilies.new :name => 'One'
-      m.save
-
-      # Return defaults
-      m = ModelWithDefaultsInFamilies.find(1)
-      assert_equal [], m.tags
+      m = ModelWithDefaultsInFamilies.create :name => 'One'
 
       # Return defaults
       m = ModelWithDefaultsInFamilies.find(1, families: 'tags')
@@ -438,22 +426,32 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       m = ModelWithDefaultsInFamilies.find(1, :families => 'tags')
       assert_equal ['foo'], m.tags
 
-      # Return defaults
-      m = ModelWithDefaultsInFamilies.find(1)
-      assert_equal [], m.tags
-
       # Change another property
       m = ModelWithDefaultsInFamilies.find(1)
-      m.name = 'Two'
+      m.name = 'Changed'
       m.save
-
-      # Return defaults
-      m = ModelWithDefaultsInFamilies.find(1)
-      assert_equal [], m.tags
 
       # Return data
       m = ModelWithDefaultsInFamilies.find(1, :families => 'tags')
       assert_equal ['foo'], m.tags
+
+      # Return defaults
+      ModelWithDefaultsInFamilies.create :name => 'Two'
+      n = ModelWithDefaultsInFamilies.find(2, :families => 'tags')
+      assert_equal [], n.tags
+    end
+
+    should "raise an exception when accessing not-loaded property on persisted model" do
+      ModelWithFamily.new.save
+      m = ModelWithFamily.find(1)
+      assert_raise(Redis::Persistence::FamilyNotLoaded) { m.lang }
+    end
+
+    should "not raise an exception when accessing property on not-yet-persisted model" do
+      m = ModelWithFamily.new
+      assert_nothing_raised do
+        assert_nil m.lang
+      end
     end
 
   end
