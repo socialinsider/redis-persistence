@@ -122,10 +122,6 @@ class Redis
         # attr_reader name.to_sym
         define_method("#{name}") do
           raise FamilyNotLoaded, "You are accessing the '#{name}' property in the '#{self.class.property_families[name.to_s]}' family which was not loaded.\nTo prevent you from losing data, this exception was raised. Consider loading the model with the family:\n\n  #{self.class.to_s}.find(#{self.id}, families: '#{self.class.property_families[name.to_s]}')\n\n" if self.persisted? and not self.__loaded_families.include?( self.class.property_families[name.to_s] )
-          # p "---#{name}---"
-          # p self.__loaded_families
-          # p self.class.property_families
-          # p self.class.family_properties
           instance_variable_get(:"@#{name}")
         end
 
@@ -350,36 +346,38 @@ class Redis
         "#<#{self.class}: #{attributes}>"
       end
 
-      # Returns redis key of instance
+      # Returns the composited key for storing the record in the database
       #
       def __redis_key
         "#{self.class.model_name.plural}:#{self.id}"
       end
 
-      # Updates record properties, taking care of casting to specified classes
-      # (single values or collections), augmenting hashes so you can access them with dot notation,
-      # and automatically converting properly formatted time values to Time classes.
+      # Updates record properties, taking care of casting to custom or built-in classes.
       #
       def __update_attributes(attributes)
-        attributes.each do |name, value|
-          case
-          # Should we cast the value ...
+        attributes.each { |name, value| send "#{name}=", __cast_value(name, value) }
+      end
+
+      # Casts the values according to the <tt>:class</tt> option set when
+      # defining the property, cast Hashes as Hashr[http://rubygems.org/gems/hashr] instances
+      # automatically convert UTC formatted strings to Time.
+      #
+      def __cast_value(name, value)
+        case
           when klass = self.class.property_types[name.to_sym]
-            # ... as an Array ...
             if klass.is_a?(Array) && value.is_a?(Array)
-              send "#{name}=", value.map { |v| klass.first.new(v) }
-            # ... or object?
+              value.map { |v| klass.first.new(v) }
             else
-              send "#{name}=", klass.new(value)
+              klass.new(value)
             end
-          # Should we return augmented Hash?
+
           when value.is_a?(Hash)
-            send "#{name}=", Hashr.new(value)
+            Hashr.new(value)
+
           else
             # Strings formatted as <http://en.wikipedia.org/wiki/ISO8601> are automatically converted to Time
             value = Time.parse(value) if value.is_a?(String) && value =~ /^\d{4}[\/\-]\d{2}[\/\-]\d{2}T\d{2}\:\d{2}\:\d{2}Z$/
-            send "#{name}=", value
-          end
+            value
         end
       end
 

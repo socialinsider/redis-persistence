@@ -165,7 +165,6 @@ class RedisPersistenceTest < ActiveSupport::TestCase
 
     should "cast the values" do
       m = ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
-      m.save
 
       m = ModelWithCastingInFamily.find(1, :families => 'meta')
       assert_equal [], m.parts
