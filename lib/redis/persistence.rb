@@ -266,23 +266,28 @@ class Redis
         end
 
         # Make copy of objects in the property defaults hash (so default values are left intact):
-        property_defaults = self.class.property_defaults.inject({}) do |sum, item|
+        property_defaults = self.class.property_defaults.inject({}) do |hash, item|
           key, value = item
-          sum[key] = value.class.respond_to?(:new) ? value.clone : value
-          sum
+          hash[key] = value.class.respond_to?(:new) ? value.clone : value
+          hash
         end
 
+        # Update attributes, respecting defaults:
         __update_attributes property_defaults.merge(attributes)
         self
       end; alias :attributes= :initialize
 
+      # Update record attributes and save it:
+      #
+      #     article.update_attributes title: 'Changed', published: true, ...
+      #
       def update_attributes(attributes={})
         __update_attributes attributes
         save
         self
       end
 
-      # Returns a Hash of attributes for serialization, etc
+      # Returns record attributes as a Hash.
       #
       def attributes
         self.class.
@@ -358,7 +363,7 @@ class Redis
       end
 
       def inspect
-        "#<#{self.class}: #{attributes}>"
+        "#<#{self.class}: #{attributes}, loaded_families: #{__loaded_families.join(', ')}>"
       end
 
       # Returns the composited key for storing the record in the database
@@ -379,6 +384,7 @@ class Redis
       #
       def __cast_value(name, value)
         case
+
           when klass = self.class.property_types[name.to_sym]
             if klass.is_a?(Array) && value.is_a?(Array)
               value.map { |v| klass.first.new(v) }
