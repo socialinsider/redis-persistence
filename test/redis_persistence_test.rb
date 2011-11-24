@@ -357,6 +357,20 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 'New', a.title
     end
 
+    should "reload itself" do
+      m = ModelWithFamily.create
+      assert_raise(Redis::Persistence::FamilyNotLoaded) { m.views }
+
+      m.reload(families: 'counters')
+      assert m.__loaded_families.include?('counters'), m.__loaded_families.inspect
+      assert_nothing_raised { assert_nil m.views }
+
+      m.views = 100
+      m.save
+
+      assert_equal 100, ModelWithFamily.find(1, families: 'counters').views
+    end
+
     should "get auto-incrementing ID on save when none is passed" do
       article = PersistentArticle.new title: 'One'
 

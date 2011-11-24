@@ -327,7 +327,24 @@ class Redis
         self
       end
 
-      # Removes the record from the database, performing callbacks.
+      # Reloads the model, updating its loaded families and attributes,
+      # eg. when you want to access properties in not-loaded families:
+      #
+      #     article.views
+      #     # => FamilyNotLoaded
+      #     article.reload(families: 'counters').views
+      #     # => 100
+      #
+      def reload(options={})
+        reloaded = self.class.find(self.id, options)
+        self.attributes        = reloaded.attributes
+        self.__loaded_families = reloaded.__loaded_families
+        self
+      end
+
+      # Removes the record from the database, performing callbacks:
+      #
+      #     article.destroy
       #
       def destroy
         run_callbacks :destroy do
