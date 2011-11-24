@@ -104,7 +104,7 @@ end
 class ModelWithCastingInFamily
   include Redis::Persistence
   property :pieces, :class => [Piece], :default => [], :family => 'meta'
-  property :parts,  :class => [Piece], :default => [], :family => 'meta'
+  property :parts,  :class => [Piece], :default => [], :family => 'other'
 end
 
 class ModelWithDefaultArray

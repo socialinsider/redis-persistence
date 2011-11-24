@@ -167,7 +167,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       m = ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 } ]
 
       m = ModelWithCastingInFamily.find(1, :families => 'meta')
-      assert_equal [], m.parts
+      assert_raise(Redis::Persistence::FamilyNotLoaded) { m.parts }
       assert_not_nil   m.pieces.first
       assert_equal 42, m.pieces.first.level
     end
@@ -369,6 +369,14 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       m.save
 
       assert_equal 100, ModelWithFamily.find(1, families: 'counters').views
+    end
+
+    should "reload itself when casted" do
+      m = ModelWithCastingInFamily.create
+      assert_raise(Redis::Persistence::FamilyNotLoaded) { m.pieces }
+
+      m.reload(families: 'meta')
+      assert_equal [], m.pieces
     end
 
     should "get auto-incrementing ID on save when none is passed" do

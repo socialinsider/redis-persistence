@@ -290,9 +290,7 @@ class Redis
           inject({}) do |attributes, key|
             begin
               attributes[key] = send(key)
-            rescue FamilyNotLoaded
-              attributes[key] = "[NOT LOADED]"
-            end
+            rescue FamilyNotLoaded; end
             attributes
           end
       end
