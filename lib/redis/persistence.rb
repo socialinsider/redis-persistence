@@ -121,7 +121,7 @@ class Redis
         #
         # attr_reader name.to_sym
         define_method("#{name}") do
-          raise FamilyNotLoaded, "You are accessing the '#{name}' property in the '#{self.class.property_families[name.to_s]}' family which was not loaded.\nTo prevent you from losing data, this exception was raised. Consider loading the model with the family:\n\n  #{self.class.to_s}.find(#{self.id}, families: '#{self.class.property_families[name.to_s]}')\n\n" if self.persisted? and not self.__loaded_families.include?( self.class.property_families[name.to_s] )
+          raise FamilyNotLoaded, "You are accessing the '#{name}' property in the '#{self.class.property_families[name.to_s]}' family which was not loaded.\nTo prevent you from losing data, this exception was raised. Consider loading the model with the family:\n\n  #{self.class.to_s}.find('#{self.id}', families: '#{self.class.property_families[name.to_s]}')\n\n" if self.persisted? and not self.__loaded_families.include?( self.class.property_families[name.to_s] )
           instance_variable_get(:"@#{name}")
         end
 
