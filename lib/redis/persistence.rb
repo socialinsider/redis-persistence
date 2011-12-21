@@ -387,9 +387,9 @@ class Redis
 
           when klass = self.class.property_types[name.to_sym]
             if klass.is_a?(Array) && value.is_a?(Array)
-              value.map { |v| klass.first.new(v) }
+              value.map { |v| v.class == klass.first ? v : klass.first.new(v) }
             else
-              klass.new(value)
+              value.class == klass ? value : klass.new(value)
             end
 
           when value.is_a?(Hash)

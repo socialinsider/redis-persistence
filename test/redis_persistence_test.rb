@@ -172,6 +172,21 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 42, m.pieces.first.level
     end
 
+    should "not cas the value if it already has proper class" do
+      m = ModelWithCasting.create thing: {value: 'foo'}
+
+      m.reload
+      assert_equal 'foo', m.thing.value
+    end
+
+    should "not cast the values if it already has proper class" do
+      m = ModelWithCastingInFamily.create pieces: [ { name: 'One', level: 42 }, { name: 'Two', level: 45 } ]
+
+      m.reload(families: 'meta')
+      assert_equal 42, m.pieces.first.level
+      assert_equal 45, m.pieces.last.level
+    end
+
     should "store loaded families on initialization" do
       m = ModelWithCastingInFamily.new pieces: [ { name: 'One', level: 42 } ]
       assert_equal ['default', 'meta'], m.__loaded_families
