@@ -394,6 +394,15 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal [], m.pieces
     end
 
+    should "reload itself with already loaded families" do
+      m = ModelWithCastingInFamily.create pieces: [{name: 'foo'}], parts: [{name: 'bar'}]
+
+      m = ModelWithCastingInFamily.find(m.id, families: 'meta')
+      m = m.reload
+      assert_equal 'foo', m.pieces.first.name
+      assert m.__loaded_families.include?('meta')
+    end
+
     should "get auto-incrementing ID on save when none is passed" do
       article = PersistentArticle.new title: 'One'
 

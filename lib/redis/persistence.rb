@@ -339,7 +339,8 @@ class Redis
       #     # => 100
       #
       def reload(options={})
-        reloaded = self.class.find(self.id, options)
+        families = self.__loaded_families | Array(options[:families])
+        reloaded = self.class.find(self.id, options.merge(families: families))
         self.attributes        = reloaded.attributes
         self.__loaded_families = reloaded.__loaded_families
         self
