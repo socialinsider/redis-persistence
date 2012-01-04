@@ -86,7 +86,7 @@ class Redis
         include ActiveModel::Conversion
 
         extend  ActiveModel::Callbacks
-        define_model_callbacks :save, :destroy
+        define_model_callbacks :save, :destroy, :create
       end
     end
 
@@ -317,7 +317,7 @@ class Redis
       # Be careful not to overwrite properties with default values.
       #
       def save(options={})
-        run_callbacks :save do
+        perform = lambda do
           self.id ||= self.class.__next_id
           families  = if options[:families] == 'all'; self.class.family_properties.keys
                       else;                           self.__loaded_families | Array(options[:families])
@@ -326,6 +326,15 @@ class Redis
                         [family.to_s, self.to_json(:only => self.class.family_properties[family.to_sym])]
                       end.flatten
           __redis.hmset __redis_key, *params
+        end
+        run_callbacks :save do
+          unless persisted?
+            run_callbacks :create do
+              perform.()
+            end
+          else
+            perform.()
+          end
         end
         self
       end

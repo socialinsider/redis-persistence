@@ -415,6 +415,19 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 2, PersistentArticle.__next_id
     end
 
+    should "fire before_create hooks" do
+      ModelWithCallbacks.any_instance.expects(:my_before_create_method)
+
+      ModelWithCallbacks.create title: 'Hooks'
+    end
+
+    should "fire both before_create and before_save hooks if defined" do
+      ModelWithCallbacks.any_instance.expects(:my_before_create_method)
+      ModelWithCallbacks.any_instance.expects(:my_callback_method).twice
+
+      ModelWithCallbacks.create title: 'Hooks'
+    end
+
     should "fire before_save hooks" do
       article = ModelWithCallbacks.new title: 'Hooks'
       article.expects(:my_callback_method).twice

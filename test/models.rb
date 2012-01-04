@@ -39,10 +39,14 @@ class ModelWithCallbacks
   before_save    :my_callback_method
   after_save     :my_callback_method
   before_destroy { @hooked = 'YEAH' }
+  before_create  :my_before_create_method
 
   property :title
 
   def my_callback_method
+  end
+
+  def my_before_create_method
   end
 end
 
