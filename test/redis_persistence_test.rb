@@ -247,6 +247,12 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal '3', PersistentArticle.all.last.title
     end
 
+    should "return all instances with desired families" do
+      3.times { |i| ModelWithFamily.create name: "#{i+1}", tags: [ 'foo', 'bar' ] }
+      assert_equal 3,   ModelWithFamily.all(families: 'tags').size
+      assert_equal ['foo', 'bar'], ModelWithFamily.all(families: 'tags').last.tags
+    end
+
     should "return instances by IDs" do
       10.times { |i| PersistentArticle.create title: "#{i+1}" }
       assert_equal 10, PersistentArticle.all.size

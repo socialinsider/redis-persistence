@@ -236,7 +236,7 @@ class Redis
       end
 
       def __find_all(options={})
-        __find_many __all_ids
+        __find_many __all_ids, options
       end
 
       # Find all records in the database:
