@@ -49,7 +49,7 @@ Basic example
     # => <Article: {"id"=>1, "title"=>"The Thing", ...}>
 
     article.title
-    # => Hello World!
+    # => The Thing!
 
     article.created.year
     # => 2011
