@@ -2,7 +2,6 @@ require 'redis'
 require 'hashr'
 require 'multi_json'
 require 'active_model'
-require 'active_support/concern'
 require 'active_support/configurable'
 
 require File.expand_path('../persistence/railtie', __FILE__) if defined?(Rails)
@@ -61,32 +60,37 @@ class Redis
       yield config
     end
 
-    included do
-      include ActiveModelIntegration
-      self.include_root_in_json = false
+    def self.included(base)
+      base.class_eval do
+        include ActiveModelIntegration
+        self.include_root_in_json = false
 
-      def self.__redis
-        Redis::Persistence.config.redis
-      end
+        extend  ClassMethods
+        include InstanceMethods
 
-      def __redis
-        self.class.__redis
+        def self.__redis
+          Redis::Persistence.config.redis
+        end
+
+        def __redis
+          self.class.__redis
+        end
       end
     end
 
     module ActiveModelIntegration
-      extend ActiveSupport::Concern
+      def self.included(base)
+        base.class_eval do
+          include ActiveModel::AttributeMethods
+          include ActiveModel::Validations
+          include ActiveModel::Serialization
+          include ActiveModel::Serializers::JSON
+          include ActiveModel::Naming
+          include ActiveModel::Conversion
 
-      included do
-        include ActiveModel::AttributeMethods
-        include ActiveModel::Validations
-        include ActiveModel::Serialization
-        include ActiveModel::Serializers::JSON
-        include ActiveModel::Naming
-        include ActiveModel::Conversion
-
-        extend  ActiveModel::Callbacks
-        define_model_callbacks :save, :destroy, :create
+          extend  ActiveModel::Callbacks
+          define_model_callbacks :save, :destroy, :create
+        end
       end
     end
 
