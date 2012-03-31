@@ -366,8 +366,15 @@ class Redis
       def destroy
         run_callbacks :destroy do
           __redis.del __redis_key
+          @destroyed = true
         end
         self.freeze
+      end
+
+      # Returns whether record is destroyed
+      #
+      def destroyed?
+        !!@destroyed
       end
 
       # Returns whether record is saved into database
