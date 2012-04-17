@@ -172,7 +172,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal 42, m.pieces.first.level
     end
 
-    should "not cas the value if it already has proper class" do
+    should "not cast the value if it already has proper class" do
       m = ModelWithCasting.create thing: {value: 'foo'}
 
       m.reload
