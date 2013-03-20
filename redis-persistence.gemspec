@@ -17,7 +17,7 @@ Gem::Specification.new do |gem|
 
   # = Library dependencies
   #
-  gem.add_dependency "redis",       "~> 2.2.2"
+  gem.add_dependency "redis",       "> 2"
   gem.add_dependency "multi_json",  "~> 1.1"
   gem.add_dependency "activemodel", "> 3.0"
   gem.add_dependency "hashr",       "~> 0.0.19"
