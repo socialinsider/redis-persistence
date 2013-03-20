@@ -272,7 +272,7 @@ class Redis
         # Make copy of objects in the property defaults hash (so default values are left intact):
         property_defaults = self.class.property_defaults.inject({}) do |hash, item|
           key, value = item
-          hash[key] = value.class.respond_to?(:new) ? value.clone : value
+          hash[key.to_sym] = value.class.respond_to?(:new) ? value.clone : value
           hash
         end
 
@@ -298,7 +298,7 @@ class Redis
           properties.
           inject({}) do |attributes, key|
             begin
-              attributes[key] = send(key)
+              attributes[key.to_s] = send(key)
             rescue FamilyNotLoaded; end
             attributes
           end
