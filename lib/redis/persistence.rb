@@ -45,7 +45,6 @@ class Redis
   # See the <tt>examples/article.rb</tt> for full example.
   #
   module Persistence
-    extend  ActiveSupport::Concern
 
     class RedisNotAvailable < StandardError; end
     class FamilyNotLoaded   < StandardError; end
