@@ -3,7 +3,7 @@ require 'bundler/setup'
 require 'test/unit'
 require 'shoulda'
 require 'turn' unless ENV["TM_FILEPATH"] || ENV["CI"]
-require 'mocha'
+require 'mocha/setup'
 
 require 'active_support/core_ext/hash/indifferent_access'
 
