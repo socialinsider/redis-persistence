@@ -145,7 +145,9 @@ class Redis
         properties << name.to_s unless properties.include?(name.to_s)
 
         # Save property default value (when relevant):
-        property_defaults[name.to_sym] = options[:default] if options[:default]
+        unless (default_value = options.delete(:default)).nil?
+          property_defaults[name.to_sym] = default_value.respond_to?(:call) ? default_value.call : default_value
+        end
 
         # Save property casting (when relevant):
         property_types[name.to_sym]    = options[:class]   if options[:class]

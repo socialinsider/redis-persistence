@@ -125,3 +125,10 @@ class ModelWithDefaultsInFamilies
   property :name
   property :tags, :default => [], :family => 'tags'
 end
+
+class ModelWithDefaultLambdas
+  include Redis::Persistence
+
+  property :name
+  property :created_at, :default => lambda { Time.now }
+end

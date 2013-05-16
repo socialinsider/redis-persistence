@@ -76,6 +76,11 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_equal true, d.admin
     end
 
+    should "evaluate lambdas as default values" do
+      d = ModelWithDefaultLambdas.new
+      assert_kind_of Time, d.created_at
+    end
+
     should "return time as time" do
       a = PersistentArticle.create created: Time.new(2011, 11, 9).utc
       assert_instance_of Time, a.created
