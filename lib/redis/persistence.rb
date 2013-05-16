@@ -226,10 +226,10 @@ class Redis
 
       def __find_one(id, options={})
         families = options[:families] == 'all' ? family_properties.keys.map(&:to_s) : [DEFAULT_FAMILY.to_s] | Array(options[:families])
-        data = __redis.hmget("#{self.model_name.plural}:#{id}", *families)
+        data = __redis.hmget("#{self.model_name.plural}:#{id}", *families).compact
 
-        unless data.compact.empty?
-          attributes = data.compact.inject({}) { |hash, item| hash.update( MultiJson.decode(item, :symbolize_keys => true) ); hash }
+        unless data.empty?
+          attributes = data.inject({}) { |hash, item| hash.update( MultiJson.decode(item, :symbolize_keys => true) ); hash }
           instance   = self.new attributes
           instance.__loaded_families = families
           instance
