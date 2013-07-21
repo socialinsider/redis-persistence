@@ -7,6 +7,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Simple ActiveModel-compatible persistence layer in Redis}
   gem.summary       = %q{Simple ActiveModel-compatible persistence layer in Redis}
   gem.homepage      = ""
+  gem.license       = 'MIT'
 
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.files         = `git ls-files`.split("\n")
