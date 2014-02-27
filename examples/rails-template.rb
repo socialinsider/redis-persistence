@@ -15,7 +15,7 @@
 # Usage
 # -----
 #
-#     $ rails new articles -m https://raw.github.com/Ataxo/redis-persistence/master/examples/rails-template.rb
+#     $ rails new articles -m https://raw.github.com/socialinsider/redis-persistence/master/examples/rails-template.rb
 #
 # ===================================================================================================================
 
@@ -42,7 +42,7 @@ puts
 say_status  "Rubygems", "Adding Rubygems into Gemfile...\n", :yellow
 puts        '-'*80, ''; sleep 1
 
-gem 'redis-persistence', :git => 'git://github.com/Ataxo/redis-persistence.git'
+gem 'redis-persistence', :git => 'git://github.com/socialinsider/redis-persistence.git'
 
 git :add => '.'
 git :commit => "-m 'Added gems'"

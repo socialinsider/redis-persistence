@@ -59,8 +59,8 @@ Basic example
     # => <Article: {"id"=>1, "title"=>"The Cabin", ...}>
 ```
 
-See the [`examples/article.rb`](http://github.com/Ataxo/redis-persistence/blob/master/examples/article.rb) for full example.
+See the [`examples/article.rb`](http://github.com/socialinsider/redis-persistence/blob/master/examples/article.rb) for full example.
 
 -----
 
-(c) 2011, Ataxo Interactive, s.r.o., released under the MIT License.
+(c) 2011, Social Insider, s.r.o., released under the MIT License.
