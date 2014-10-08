@@ -7,6 +7,8 @@ Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 require 'shoulda'
 require 'mocha/setup'
 
+require 'pry'
+
 require 'active_support/core_ext/hash/indifferent_access'
 
 require 'redis/persistence'

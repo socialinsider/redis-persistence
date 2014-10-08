@@ -30,6 +30,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "minitest",  "~> 5.4"
   gem.add_development_dependency "minitest-reporters", "~> 1"
   gem.add_development_dependency "shoulda"
+  gem.add_development_dependency "pry"
   gem.add_development_dependency "mocha"
   gem.add_development_dependency "rake"
 end
