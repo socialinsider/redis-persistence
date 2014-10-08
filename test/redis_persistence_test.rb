@@ -89,6 +89,16 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_instance_of Time, a.created
     end
 
+    should "return time String rounded to seconds as Time" do
+      ActiveSupport::JSON::Encoding.time_precision = 0
+
+      a = PersistentArticle.create created: Time.new(2011, 11, 9).utc
+      assert_instance_of Time, a.created
+
+      a = PersistentArticle.find(1)
+      assert_instance_of Time, a.created
+    end
+
     should "return boolean as boolean" do
       m = ModelWithBooleans.create published: false, approved: true
       assert_instance_of FalseClass, m.published

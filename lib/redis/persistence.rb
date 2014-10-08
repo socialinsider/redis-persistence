@@ -419,7 +419,7 @@ class Redis
 
           else
             # Strings formatted as <http://en.wikipedia.org/wiki/ISO8601> are automatically converted to Time
-            value = Time.parse(value) if value.is_a?(String) && value =~ /^\d{4}[\/\-]\d{2}[\/\-]\d{2}T\d{2}\:\d{2}\:\d{2}Z$/
+            value = Time.parse(value) if value.is_a?(String) && value =~ /^\d{4}[\/\-]\d{2}[\/\-]\d{2}T\d{2}\:\d{2}\:\d{2}(.\d{1,})*Z$/
             value
         end
       end
