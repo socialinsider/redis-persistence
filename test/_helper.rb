@@ -1,8 +1,10 @@
 require 'bundler/setup'
 
-require 'test/unit'
+require 'minitest/autorun'
+require "minitest/reporters"
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+
 require 'shoulda'
-require 'turn' unless ENV["TM_FILEPATH"] || ENV["CI"]
 require 'mocha/setup'
 
 require 'active_support/core_ext/hash/indifferent_access'
@@ -12,18 +14,14 @@ require 'yajl'
 
 require 'models'
 
-class Test::Unit::TestCase
+Redis::Persistence.config.redis = Redis.new db: ENV['REDIS_PERSISTENCE_TEST_DATABASE'] || 14
 
-  def setup
-    Redis::Persistence.config.redis = Redis.new db: ENV['REDIS_PERSISTENCE_TEST_DATABASE'] || 14
-    Redis::Persistence.config.redis.flushdb
-  end
+class ActiveSupport::TestCase
+  def setup    ; Redis::Persistence.config.redis.flushdb ; end
+  def teardown ; Redis::Persistence.config.redis.flushdb ; end
+end
 
-  def teardown
-    Redis::Persistence.config.redis.flushdb
-    Redis::Persistence.configure do |config|
-      config.redis = nil
-    end
-  end
-
+class Minitest::Unit::TestCase
+  def setup    ; Redis::Persistence.config.redis.flushdb ; end
+  def teardown ; Redis::Persistence.config.redis.flushdb ; end
 end

@@ -3,7 +3,7 @@ require '_helper'
 class Redis
   module Persistence
 
-    class ActiveModelLintTest < Test::Unit::TestCase
+    class ActiveModelLintTest < Minitest::Test
 
       include ActiveModel::Lint::Tests
 

@@ -20,16 +20,16 @@ Gem::Specification.new do |gem|
   #
   gem.add_dependency "redis",       "> 2"
   gem.add_dependency "multi_json",  "~> 1.1"
-  gem.add_dependency "activemodel", "> 3.0"
+  gem.add_dependency "activemodel", "~> 4"
   gem.add_dependency "hashr",       "~> 0.0.19"
 
   # = Development dependencies
   #
   gem.add_development_dependency "bundler",   "~> 1.0"
   gem.add_development_dependency "yajl-ruby", "~> 1"
-  gem.add_development_dependency "minitest",  "~> 4"
+  gem.add_development_dependency "minitest",  "~> 5.4"
+  gem.add_development_dependency "minitest-reporters", "~> 1"
   gem.add_development_dependency "shoulda"
   gem.add_development_dependency "mocha"
-  gem.add_development_dependency "turn"
   gem.add_development_dependency "rake"
 end
