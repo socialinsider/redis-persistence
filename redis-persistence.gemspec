@@ -25,8 +25,9 @@ Gem::Specification.new do |gem|
 
   # = Development dependencies
   #
-  gem.add_development_dependency "bundler",     "~> 1.0"
-  gem.add_development_dependency "yajl-ruby",   "~> 0.8.0"
+  gem.add_development_dependency "bundler",   "~> 1.0"
+  gem.add_development_dependency "yajl-ruby", "~> 1"
+  gem.add_development_dependency "minitest",  "~> 4"
   gem.add_development_dependency "shoulda"
   gem.add_development_dependency "mocha"
   gem.add_development_dependency "turn"
