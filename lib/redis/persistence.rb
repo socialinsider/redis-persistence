@@ -409,7 +409,7 @@ class Redis
 
           when klass = self.class.property_types[name.to_sym]
             if klass.is_a?(Array) && value.is_a?(Array)
-              value.map { |v| v.class == klass.first ? v : klass.first.new(v) }
+              value.inject(klass.class.new) { |collection, v| collection << (v.class == klass.first ? v : klass.first.new(v)) ; collection }
             else
               value.class == klass ? value : klass.new(value)
             end

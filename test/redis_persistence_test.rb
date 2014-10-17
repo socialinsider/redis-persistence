@@ -135,6 +135,11 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       assert_instance_of ModelWithCasting::Stuff, m.stuff
       assert_equal 1, m.thing.value
       assert_equal 1, m.stuff.values.first
+
+      m = ModelWithCustomCollection.create :pieces => [ { :id => 123, :name => 'first piece' }, { :id => 456, :name => 'second piece' } ]
+
+      assert_equal 'first piece',  m.pieces.find(123).name
+      assert_equal 'second piece', m.pieces.find(456).name
     end
 
     should "provide easy access to deep hashes" do

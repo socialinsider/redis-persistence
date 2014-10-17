@@ -1,3 +1,9 @@
+class Collection < Array
+  def find(id)
+    super { |x| x.id == id }
+  end
+end
+
 class Piece
   def initialize(params)
     @attributes = HashWithIndifferentAccess.new(params)
@@ -117,6 +123,12 @@ class ModelWithDefaultArray
   property :accounts, :default => []
   property :options,  :default => { :switches => []}
   property :deep,     :default => { :one => { :two => { :three => [] } } }
+end
+
+class ModelWithCustomCollection
+  include Redis::Persistence
+
+  property :pieces, :class => Collection[Piece], :default => Collection.new
 end
 
 class ModelWithDefaultsInFamilies
