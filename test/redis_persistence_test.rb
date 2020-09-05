@@ -143,7 +143,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       m = ModelWithFamily.new name: 'One'
       m.save
 
-      assert in_redis.exists('model_with_families:1'), in_redis.keys.to_s
+      assert in_redis.exists?('model_with_families:1'), in_redis.keys.to_s
       assert in_redis.hkeys('model_with_families:1').include?('default')
     end
 
@@ -152,7 +152,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
       m.save
 
       assert_equal 1, m.id
-      assert in_redis.exists('model_with_families:1'), in_redis.keys.to_s
+      assert in_redis.exists?('model_with_families:1'), in_redis.keys.to_s
       assert in_redis.hkeys('model_with_families:1').include?('default'),  in_redis.hkeys('model_with_families:1').to_s
       assert in_redis.hkeys('model_with_families:1').include?('counters'), in_redis.hkeys('model_with_families:1').to_s
 
@@ -314,7 +314,7 @@ class RedisPersistenceTest < ActiveSupport::TestCase
     should "be saved and found in Redis" do
       article = PersistentArticle.new title: 'One'
       assert article.save
-      assert in_redis.exists("persistent_articles:1")
+      assert in_redis.exists?("persistent_articles:1")
 
       assert_equal 1, PersistentArticle.all.size
       assert_not_nil  PersistentArticle.find(1)

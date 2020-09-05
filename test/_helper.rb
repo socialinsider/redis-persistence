@@ -1,6 +1,6 @@
 require 'bundler/setup'
 
-require 'test/unit'
+require 'minitest/unit'
 require 'shoulda'
 require 'turn' unless ENV["TM_FILEPATH"] || ENV["CI"]
 require 'mocha/setup'
