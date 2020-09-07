@@ -1,9 +1,9 @@
 require 'bundler/setup'
 
-require 'test/unit'
+require 'minitest/unit'
 require 'shoulda'
 require 'turn' unless ENV["TM_FILEPATH"] || ENV["CI"]
-require 'mocha/setup'
+require 'mocha/minitest'
 
 require 'active_support/core_ext/hash/indifferent_access'
 
@@ -12,7 +12,7 @@ require 'yajl'
 
 require 'models'
 
-class Test::Unit::TestCase
+class Minitest::Test
 
   def setup
     Redis::Persistence.config.redis = Redis.new db: ENV['REDIS_PERSISTENCE_TEST_DATABASE'] || 14

@@ -381,7 +381,7 @@ class Redis
       # Returns whether record is saved into database
       #
       def persisted?
-        __redis.exists __redis_key
+        __redis.exists? __redis_key
       end
 
       def inspect
